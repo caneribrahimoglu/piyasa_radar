@@ -1,0 +1,248 @@
+import 'package:flutter/material.dart';
+import 'package:piyasa_radar/core/theme/app_radius.dart';
+import 'package:piyasa_radar/core/theme/app_spacing.dart';
+import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
+import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
+import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
+import 'package:piyasa_radar/shared/widgets/page_container.dart';
+
+class SellerTrackingDetailPage extends StatelessWidget {
+  const SellerTrackingDetailPage({super.key, required this.item});
+
+  final SellerWatchItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Satıcı Detayı')),
+      body: PageContainer(
+        maxWidth: 800,
+        child: ListView(
+          children: [
+            Text(
+              item.sellerName,
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _DetailRow(label: 'Pazaryeri', value: item.marketplaceName),
+            _DetailRow(label: 'Satıcı linki', value: item.sellerUrl),
+            _DetailRow(
+              label: 'Toplam ürün sayısı',
+              value: item.totalProducts.toString(),
+            ),
+            _DetailRow(
+              label: 'Yeni ürün sayısı',
+              value: item.newProductsCount.toString(),
+            ),
+            _DetailRow(
+              label: 'Son kontrol zamanı',
+              value: item.formattedLastCheckedAt,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              'Ürün Listesi',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ...item.products.map((product) {
+              return _SellerProductTile(product: product);
+            }),
+            const SizedBox(height: AppSpacing.lg),
+            _SellerAlertHistory(alerts: item.alerts),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SellerAlertHistory extends StatelessWidget {
+  const _SellerAlertHistory({required this.alerts});
+
+  final List<SellerAlertEvent> alerts;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alert Geçmişi',
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (alerts.isEmpty)
+          Text('Henüz alert yok', style: textTheme.bodyMedium)
+        else
+          ...alerts.map((alert) => _SellerAlertTile(alert: alert)),
+      ],
+    );
+  }
+}
+
+class _SellerAlertTile extends StatelessWidget {
+  const _SellerAlertTile({required this.alert});
+
+  final SellerAlertEvent alert;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                alert.title,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(alert.message),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                alert.formattedCreatedAt,
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SellerProductTile extends StatelessWidget {
+  const _SellerProductTile({required this.product});
+
+  final SellerProductItem product;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(color: colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      product.productName,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (product.isNew) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    const _NewProductLabel(),
+                  ],
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(product.formattedPrice),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                product.formattedDetectedAt,
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NewProductLabel extends StatelessWidget {
+  const _NewProductLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: colorScheme.primary),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Text(
+          'Yeni ürün',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(value, style: Theme.of(context).textTheme.bodyLarge),
+          const SizedBox(height: AppSpacing.sm),
+          const Divider(height: 1),
+        ],
+      ),
+    );
+  }
+}
