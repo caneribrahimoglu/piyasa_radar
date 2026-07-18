@@ -82,7 +82,16 @@ class ProductWatchDetailPage extends StatelessWidget {
               label: 'Son kontrol zamanı',
               value: item.formattedLastCheckedAt,
             ),
-            _DetailRow(label: 'Stok durumu', value: item.stockLabel),
+            _DetailRow(
+              label: 'Stok takibi',
+              value: item.stockTrackingEnabled ? 'Aktif' : 'Kapalı',
+            ),
+            _DetailRow(
+              label: 'Stok durumu',
+              value: item.stockTrackingEnabled
+                  ? item.stockLabel
+                  : 'Kontrol edilmiyor',
+            ),
             _DetailRow(
               label: 'Fiyat durumu',
               value: item.priceChanged ? 'Fiyat değişti' : 'Fiyat değişmedi',

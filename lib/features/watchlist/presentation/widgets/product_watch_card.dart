@@ -22,7 +22,14 @@ class ProductWatchCard extends StatelessWidget {
     final priceUpColor = isDark
         ? AppColors.priceUpDark
         : AppColors.priceUpLight;
-    final stockColor = item.inStock ? priceDownColor : colorScheme.error;
+    final stockColor = !item.stockTrackingEnabled
+        ? colorScheme.onSurfaceVariant
+        : item.inStock
+        ? priceDownColor
+        : colorScheme.error;
+    final stockLabel = item.stockTrackingEnabled
+        ? item.stockLabel
+        : 'Stok takibi kapalı';
     final priceColor = item.priceDecreased
         ? priceDownColor
         : item.priceIncreased
@@ -103,7 +110,7 @@ class ProductWatchCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  item.stockLabel,
+                  stockLabel,
                   style: textTheme.labelLarge?.copyWith(
                     color: stockColor,
                     fontWeight: FontWeight.w700,

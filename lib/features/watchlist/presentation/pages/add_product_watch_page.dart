@@ -53,7 +53,8 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
       previousPrice: currentPrice,
       lastCheckedAt: DateTime.now(),
       priceChanged: false,
-      inStock: _isStockTrackingEnabled,
+      stockTrackingEnabled: _isStockTrackingEnabled,
+      inStock: true,
     );
 
     Navigator.of(context).pop(newItem);

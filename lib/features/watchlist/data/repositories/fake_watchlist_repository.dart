@@ -28,6 +28,7 @@ class FakeWatchlistRepository {
         previousPrice: 3499,
         lastCheckedAt: DateTime(2026, 7, 17, 14, 30),
         priceChanged: true,
+        stockTrackingEnabled: true,
         inStock: true,
       ),
       ProductWatchItem(
@@ -49,6 +50,7 @@ class FakeWatchlistRepository {
         previousPrice: 2799,
         lastCheckedAt: DateTime(2026, 7, 17, 13, 10),
         priceChanged: true,
+        stockTrackingEnabled: true,
         inStock: false,
       ),
       ProductWatchItem(
@@ -70,6 +72,7 @@ class FakeWatchlistRepository {
         previousPrice: 48999,
         lastCheckedAt: DateTime(2026, 7, 16, 21, 45),
         priceChanged: false,
+        stockTrackingEnabled: false,
         inStock: true,
       ),
     ];

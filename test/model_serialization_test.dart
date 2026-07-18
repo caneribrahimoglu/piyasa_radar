@@ -45,6 +45,7 @@ void main() {
       previousPrice: 1300,
       lastCheckedAt: createdAt,
       priceChanged: true,
+      stockTrackingEnabled: false,
       inStock: true,
     );
 
@@ -58,6 +59,7 @@ void main() {
     expect(restored.alerts.first.createdAt, createdAt);
     expect(restored.lastCheckedAt, createdAt);
     expect(restored.lastPrice, 1250);
+    expect(restored.stockTrackingEnabled, isFalse);
   });
 
   test('SellerProductItem reads an integer JSON price as double', () {
@@ -170,6 +172,7 @@ void main() {
 
     expect(product.checkTimes, isEmpty);
     expect(product.alerts, isEmpty);
+    expect(product.stockTrackingEnabled, isTrue);
     expect(seller.products, isEmpty);
     expect(seller.alerts, isEmpty);
     expect(alert.sourceType, 'product');

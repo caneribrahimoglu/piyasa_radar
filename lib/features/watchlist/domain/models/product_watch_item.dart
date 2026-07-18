@@ -13,6 +13,7 @@ class ProductWatchItem {
     required this.previousPrice,
     required this.lastCheckedAt,
     required this.priceChanged,
+    required this.stockTrackingEnabled,
     required this.inStock,
   });
 
@@ -27,6 +28,7 @@ class ProductWatchItem {
   final int previousPrice;
   final DateTime lastCheckedAt;
   final bool priceChanged;
+  final bool stockTrackingEnabled;
   final bool inStock;
 
   Map<String, dynamic> toJson() => {
@@ -41,6 +43,7 @@ class ProductWatchItem {
     'previousPrice': previousPrice,
     'lastCheckedAt': lastCheckedAt.toIso8601String(),
     'priceChanged': priceChanged,
+    'stockTrackingEnabled': stockTrackingEnabled,
     'inStock': inStock,
   };
 
@@ -78,6 +81,7 @@ class ProductWatchItem {
           DateTime.tryParse(json['lastCheckedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       priceChanged: json['priceChanged'] as bool? ?? false,
+      stockTrackingEnabled: json['stockTrackingEnabled'] as bool? ?? true,
       inStock: json['inStock'] as bool? ?? false,
     );
   }
