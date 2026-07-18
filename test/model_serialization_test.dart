@@ -75,6 +75,68 @@ void main() {
     expect(restored.targetPrice, isNull);
   });
 
+  test(
+    'ProductWatchItem copyWith supports all fields and clearing targetPrice',
+    () {
+      final original = ProductWatchItem(
+        id: 'product_test',
+        productName: 'Ürün',
+        productUrl: 'https://example.com/product',
+        checkTimes: const ['09:00'],
+        alerts: const [],
+        marketplaceName: 'Pazar',
+        sellerName: 'Satıcı',
+        lastPrice: 1250,
+        previousPrice: 1300,
+        targetPrice: 1200,
+        lastCheckedAt: createdAt,
+        priceChanged: true,
+        stockTrackingEnabled: true,
+        inStock: true,
+      );
+
+      final updated = original.copyWith(
+        id: 'product_updated',
+        productName: 'Yeni Ürün',
+        productUrl: 'https://example.com/new-product',
+        checkTimes: const ['10:00'],
+        alerts: [
+          AlertEvent(
+            title: 'Alert',
+            message: 'Mesaj',
+            createdAt: createdAt,
+            type: 'price',
+          ),
+        ],
+        marketplaceName: 'Yeni Pazar',
+        sellerName: 'Yeni Satıcı',
+        lastPrice: 1100,
+        previousPrice: 1250,
+        targetPrice: null,
+        lastCheckedAt: createdAt.add(const Duration(hours: 1)),
+        priceChanged: false,
+        stockTrackingEnabled: false,
+        inStock: false,
+      );
+
+      expect(updated.id, 'product_updated');
+      expect(updated.productName, 'Yeni Ürün');
+      expect(updated.productUrl, 'https://example.com/new-product');
+      expect(updated.checkTimes, const ['10:00']);
+      expect(updated.alerts, hasLength(1));
+      expect(updated.marketplaceName, 'Yeni Pazar');
+      expect(updated.sellerName, 'Yeni Satıcı');
+      expect(updated.lastPrice, 1100);
+      expect(updated.previousPrice, 1250);
+      expect(updated.targetPrice, isNull);
+      expect(updated.lastCheckedAt, createdAt.add(const Duration(hours: 1)));
+      expect(updated.priceChanged, isFalse);
+      expect(updated.stockTrackingEnabled, isFalse);
+      expect(updated.inStock, isFalse);
+      expect(original.copyWith().targetPrice, 1200);
+    },
+  );
+
   test('SellerProductItem reads an integer JSON price as double', () {
     final restored = SellerProductItem.fromJson({
       'productName': 'Ürün',
@@ -147,6 +209,57 @@ void main() {
     expect(restored.alerts, hasLength(1));
     expect(restored.alerts.first.type, 'new_product');
     expect(restored.alerts.first.createdAt, createdAt);
+  });
+
+  test('SellerWatchItem copyWith supports all fields', () {
+    final original = SellerWatchItem(
+      id: 'seller_test',
+      sellerName: 'Satıcı',
+      marketplaceName: 'Pazar',
+      sellerUrl: 'https://example.com/seller',
+      totalProducts: 10,
+      newProductsCount: 1,
+      lastCheckedAt: createdAt,
+      products: const [],
+      alerts: const [],
+    );
+    final updatedTime = createdAt.add(const Duration(hours: 2));
+    final updated = original.copyWith(
+      id: 'seller_updated',
+      sellerName: 'Yeni Satıcı',
+      marketplaceName: 'Yeni Pazar',
+      sellerUrl: 'https://example.com/new-seller',
+      totalProducts: 20,
+      newProductsCount: 3,
+      lastCheckedAt: updatedTime,
+      products: [
+        SellerProductItem(
+          productName: 'Yeni ürün',
+          productUrl: 'https://example.com/product',
+          price: 99,
+          isNew: true,
+          detectedAt: createdAt,
+        ),
+      ],
+      alerts: [
+        SellerAlertEvent(
+          title: 'Alert',
+          message: 'Mesaj',
+          createdAt: createdAt,
+          type: 'new_product',
+        ),
+      ],
+    );
+
+    expect(updated.id, 'seller_updated');
+    expect(updated.sellerName, 'Yeni Satıcı');
+    expect(updated.marketplaceName, 'Yeni Pazar');
+    expect(updated.sellerUrl, 'https://example.com/new-seller');
+    expect(updated.totalProducts, 20);
+    expect(updated.newProductsCount, 3);
+    expect(updated.lastCheckedAt, updatedTime);
+    expect(updated.products, hasLength(1));
+    expect(updated.alerts, hasLength(1));
   });
 
   test(

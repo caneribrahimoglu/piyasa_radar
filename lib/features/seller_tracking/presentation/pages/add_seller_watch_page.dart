@@ -5,7 +5,9 @@ import 'package:piyasa_radar/shared/widgets/app_text_field.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
 class AddSellerWatchPage extends StatefulWidget {
-  const AddSellerWatchPage({super.key});
+  const AddSellerWatchPage({super.key, this.initialItem});
+
+  final SellerWatchItem? initialItem;
 
   @override
   State<AddSellerWatchPage> createState() => _AddSellerWatchPageState();
@@ -16,6 +18,19 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
   final _sellerNameController = TextEditingController();
   final _sellerLinkController = TextEditingController();
   final _marketplaceNameController = TextEditingController();
+
+  bool get _isEditing => widget.initialItem != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialItem = widget.initialItem;
+    if (initialItem == null) return;
+
+    _sellerNameController.text = initialItem.sellerName;
+    _sellerLinkController.text = initialItem.sellerUrl;
+    _marketplaceNameController.text = initialItem.marketplaceName;
+  }
 
   @override
   void dispose() {
@@ -38,17 +53,24 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
       return;
     }
 
-    final newSeller = SellerWatchItem(
-      id: 'seller_${DateTime.now().microsecondsSinceEpoch}',
-      sellerName: _sellerNameController.text.trim(),
-      sellerUrl: _sellerLinkController.text.trim(),
-      marketplaceName: _marketplaceNameController.text.trim(),
-      totalProducts: 0,
-      newProductsCount: 0,
-      lastCheckedAt: DateTime.now(),
-      products: const [],
-      alerts: const [],
-    );
+    final initialItem = widget.initialItem;
+    final newSeller = initialItem == null
+        ? SellerWatchItem(
+            id: 'seller_${DateTime.now().microsecondsSinceEpoch}',
+            sellerName: _sellerNameController.text.trim(),
+            sellerUrl: _sellerLinkController.text.trim(),
+            marketplaceName: _marketplaceNameController.text.trim(),
+            totalProducts: 0,
+            newProductsCount: 0,
+            lastCheckedAt: DateTime.now(),
+            products: const [],
+            alerts: const [],
+          )
+        : initialItem.copyWith(
+            sellerName: _sellerNameController.text.trim(),
+            sellerUrl: _sellerLinkController.text.trim(),
+            marketplaceName: _marketplaceNameController.text.trim(),
+          );
 
     Navigator.of(context).pop(newSeller);
   }
@@ -56,7 +78,11 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Satıcı Takibe Al')),
+      appBar: AppBar(
+        title: Text(
+          _isEditing ? 'Satıcı Takibini Düzenle' : 'Satıcı Takibe Al',
+        ),
+      ),
       body: PageContainer(
         maxWidth: 800,
         child: Form(
@@ -82,7 +108,10 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
                 validator: _requiredFieldValidator,
               ),
               const SizedBox(height: 16),
-              AppButton(label: 'Kaydet', onPressed: _saveForm),
+              AppButton(
+                label: _isEditing ? 'Güncelle' : 'Kaydet',
+                onPressed: _saveForm,
+              ),
             ],
           ),
         ),

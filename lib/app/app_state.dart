@@ -148,6 +148,52 @@ class AppState extends ChangeNotifier {
     await _persistSellerItems();
   }
 
+  Future<void> updateWatchItem(ProductWatchItem item) async {
+    final index = _watchItems.indexWhere(
+      (watchItem) => watchItem.id == item.id,
+    );
+    if (index == -1) return;
+
+    final previousItem = _watchItems[index];
+    _watchItems[index] = item;
+    final alertsChanged = previousItem.productName != item.productName
+        ? _updateAlertSourceName(
+            sourceType: 'product',
+            sourceId: item.id,
+            sourceName: item.productName,
+          )
+        : false;
+
+    notifyListeners();
+    await Future.wait([
+      _persistWatchItems(),
+      if (alertsChanged) _persistAlerts(),
+    ]);
+  }
+
+  Future<void> updateSellerItem(SellerWatchItem item) async {
+    final index = _sellerItems.indexWhere(
+      (sellerItem) => sellerItem.id == item.id,
+    );
+    if (index == -1) return;
+
+    final previousItem = _sellerItems[index];
+    _sellerItems[index] = item;
+    final alertsChanged = previousItem.sellerName != item.sellerName
+        ? _updateAlertSourceName(
+            sourceType: 'seller',
+            sourceId: item.id,
+            sourceName: item.sellerName,
+          )
+        : false;
+
+    notifyListeners();
+    await Future.wait([
+      _persistSellerItems(),
+      if (alertsChanged) _persistAlerts(),
+    ]);
+  }
+
   Future<void> removeWatchItem(String id) async {
     final index = _watchItems.indexWhere((item) => item.id == id);
     if (index == -1) return;
@@ -187,6 +233,24 @@ class AppState extends ChangeNotifier {
     _alerts[index] = _alerts[index].copyWith(isRead: true);
     notifyListeners();
     await _persistAlerts();
+  }
+
+  bool _updateAlertSourceName({
+    required String sourceType,
+    required String sourceId,
+    required String sourceName,
+  }) {
+    var changed = false;
+    for (var index = 0; index < _alerts.length; index += 1) {
+      final alert = _alerts[index];
+      if (alert.sourceType == sourceType &&
+          alert.sourceId == sourceId &&
+          alert.sourceName != sourceName) {
+        _alerts[index] = alert.copyWith(sourceName: sourceName);
+        changed = true;
+      }
+    }
+    return changed;
   }
 
   Future<void> toggleTheme() async {

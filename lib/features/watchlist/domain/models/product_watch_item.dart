@@ -1,5 +1,7 @@
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 
+const Object _copyWithSentinel = Object();
+
 class ProductWatchItem {
   const ProductWatchItem({
     required this.id,
@@ -87,6 +89,42 @@ class ProductWatchItem {
       priceChanged: json['priceChanged'] as bool? ?? false,
       stockTrackingEnabled: json['stockTrackingEnabled'] as bool? ?? true,
       inStock: json['inStock'] as bool? ?? false,
+    );
+  }
+
+  ProductWatchItem copyWith({
+    String? id,
+    String? productName,
+    String? productUrl,
+    List<String>? checkTimes,
+    List<AlertEvent>? alerts,
+    String? marketplaceName,
+    String? sellerName,
+    int? lastPrice,
+    int? previousPrice,
+    Object? targetPrice = _copyWithSentinel,
+    DateTime? lastCheckedAt,
+    bool? priceChanged,
+    bool? stockTrackingEnabled,
+    bool? inStock,
+  }) {
+    return ProductWatchItem(
+      id: id ?? this.id,
+      productName: productName ?? this.productName,
+      productUrl: productUrl ?? this.productUrl,
+      checkTimes: checkTimes ?? this.checkTimes,
+      alerts: alerts ?? this.alerts,
+      marketplaceName: marketplaceName ?? this.marketplaceName,
+      sellerName: sellerName ?? this.sellerName,
+      lastPrice: lastPrice ?? this.lastPrice,
+      previousPrice: previousPrice ?? this.previousPrice,
+      targetPrice: identical(targetPrice, _copyWithSentinel)
+          ? this.targetPrice
+          : targetPrice as int?,
+      lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
+      priceChanged: priceChanged ?? this.priceChanged,
+      stockTrackingEnabled: stockTrackingEnabled ?? this.stockTrackingEnabled,
+      inStock: inStock ?? this.inStock,
     );
   }
 

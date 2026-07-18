@@ -79,6 +79,30 @@ class SellerWatchItem {
     );
   }
 
+  SellerWatchItem copyWith({
+    String? id,
+    String? sellerName,
+    String? marketplaceName,
+    String? sellerUrl,
+    int? totalProducts,
+    int? newProductsCount,
+    DateTime? lastCheckedAt,
+    List<SellerProductItem>? products,
+    List<SellerAlertEvent>? alerts,
+  }) {
+    return SellerWatchItem(
+      id: id ?? this.id,
+      sellerName: sellerName ?? this.sellerName,
+      marketplaceName: marketplaceName ?? this.marketplaceName,
+      sellerUrl: sellerUrl ?? this.sellerUrl,
+      totalProducts: totalProducts ?? this.totalProducts,
+      newProductsCount: newProductsCount ?? this.newProductsCount,
+      lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
+      products: products ?? this.products,
+      alerts: alerts ?? this.alerts,
+    );
+  }
+
   String get formattedLastCheckedAt {
     final day = _twoDigits(lastCheckedAt.day);
     final month = _twoDigits(lastCheckedAt.month);

@@ -4,9 +4,10 @@ import 'package:piyasa_radar/core/theme/app_radius.dart';
 import 'package:piyasa_radar/core/theme/app_spacing.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
+import 'package:piyasa_radar/features/watchlist/presentation/pages/add_product_watch_page.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
-class ProductWatchDetailPage extends StatelessWidget {
+class ProductWatchDetailPage extends StatefulWidget {
   const ProductWatchDetailPage({
     required this.item,
     required this.appState,
@@ -15,6 +16,37 @@ class ProductWatchDetailPage extends StatelessWidget {
 
   final ProductWatchItem item;
   final AppState appState;
+
+  @override
+  State<ProductWatchDetailPage> createState() => _ProductWatchDetailPageState();
+}
+
+class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
+  late ProductWatchItem _item;
+
+  @override
+  void initState() {
+    super.initState();
+    _item = widget.item;
+  }
+
+  Future<void> _openEditPage(BuildContext context) async {
+    final updatedItem = await Navigator.of(context).push<ProductWatchItem>(
+      MaterialPageRoute(
+        builder: (context) => AddProductWatchPage(initialItem: _item),
+      ),
+    );
+
+    if (updatedItem == null || !context.mounted) return;
+
+    await widget.appState.updateWatchItem(updatedItem);
+    if (!context.mounted) return;
+
+    setState(() => _item = updatedItem);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Ürün takibi güncellendi.')));
+  }
 
   Future<void> _confirmRemoval(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -38,7 +70,7 @@ class ProductWatchDetailPage extends StatelessWidget {
     );
 
     if (confirmed != true || !context.mounted) return;
-    await appState.removeWatchItem(item.id);
+    await widget.appState.removeWatchItem(_item.id);
     if (context.mounted) Navigator.of(context).pop(true);
   }
 
@@ -46,8 +78,13 @@ class ProductWatchDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(item.productName),
+        title: Text(_item.productName),
         actions: [
+          IconButton(
+            tooltip: 'Düzenle',
+            onPressed: () => _openEditPage(context),
+            icon: const Icon(Icons.edit_outlined),
+          ),
           IconButton(
             tooltip: 'Takipten çıkar',
             onPressed: () => _confirmRemoval(context),
@@ -60,45 +97,45 @@ class ProductWatchDetailPage extends StatelessWidget {
         child: ListView(
           children: [
             Text(
-              item.productName,
+              _item.productName,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.lg),
-            _DetailRow(label: 'Ürün linki', value: item.productUrl),
+            _DetailRow(label: 'Ürün linki', value: _item.productUrl),
             _DetailRow(
               label: 'Kontrol saatleri',
-              value: item.formattedCheckTimes,
+              value: _item.formattedCheckTimes,
             ),
-            _DetailRow(label: 'Pazaryeri/Site', value: item.marketplaceName),
-            _DetailRow(label: 'Satıcı adı', value: item.sellerName),
-            _DetailRow(label: 'Hedef fiyat', value: item.formattedTargetPrice),
-            _DetailRow(label: 'Son fiyat', value: item.formattedLastPrice),
+            _DetailRow(label: 'Pazaryeri/Site', value: _item.marketplaceName),
+            _DetailRow(label: 'Satıcı adı', value: _item.sellerName),
+            _DetailRow(label: 'Hedef fiyat', value: _item.formattedTargetPrice),
+            _DetailRow(label: 'Son fiyat', value: _item.formattedLastPrice),
             _DetailRow(
               label: 'Önceki fiyat',
-              value: item.formattedPreviousPrice,
+              value: _item.formattedPreviousPrice,
             ),
             _DetailRow(
               label: 'Son kontrol zamanı',
-              value: item.formattedLastCheckedAt,
+              value: _item.formattedLastCheckedAt,
             ),
             _DetailRow(
               label: 'Stok takibi',
-              value: item.stockTrackingEnabled ? 'Aktif' : 'Kapalı',
+              value: _item.stockTrackingEnabled ? 'Aktif' : 'Kapalı',
             ),
             _DetailRow(
               label: 'Stok durumu',
-              value: item.stockTrackingEnabled
-                  ? item.stockLabel
+              value: _item.stockTrackingEnabled
+                  ? _item.stockLabel
                   : 'Kontrol edilmiyor',
             ),
             _DetailRow(
               label: 'Fiyat durumu',
-              value: item.priceChanged ? 'Fiyat değişti' : 'Fiyat değişmedi',
+              value: _item.priceChanged ? 'Fiyat değişti' : 'Fiyat değişmedi',
             ),
             const SizedBox(height: AppSpacing.lg),
-            _AlertHistory(alerts: item.alerts),
+            _AlertHistory(alerts: _item.alerts),
           ],
         ),
       ),

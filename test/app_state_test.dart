@@ -40,6 +40,48 @@ void main() {
     expect(restoredState.watchItems.last.productName, item.productName);
   });
 
+  test(
+    'updating a product persists it and updates related alert source names',
+    () async {
+      final storage = MemoryAppStorage();
+      final appState = AppState(storage: storage);
+      addTearDown(appState.dispose);
+      await appState.initialize();
+
+      final original = appState.watchItems.first;
+      final updated = original.copyWith(productName: 'Güncel Ürün');
+
+      await appState.updateWatchItem(updated);
+
+      expect(appState.watchItems.first.productName, 'Güncel Ürün');
+      expect(
+        appState.alerts
+            .where(
+              (alert) =>
+                  alert.sourceType == 'product' &&
+                  alert.sourceId == original.id,
+            )
+            .every((alert) => alert.sourceName == 'Güncel Ürün'),
+        isTrue,
+      );
+
+      final storedProducts = jsonDecode(storage.watchItems!) as List<dynamic>;
+      expect(storedProducts.first['productName'], 'Güncel Ürün');
+
+      final storedAlerts = jsonDecode(storage.alerts!) as List<dynamic>;
+      expect(
+        storedAlerts
+            .where(
+              (alert) =>
+                  alert['sourceType'] == 'product' &&
+                  alert['sourceId'] == original.id,
+            )
+            .every((alert) => alert['sourceName'] == 'Güncel Ürün'),
+        isTrue,
+      );
+    },
+  );
+
   test('adding a seller persists and restores the seller list', () async {
     final storage = MemoryAppStorage();
     final appState = AppState(storage: storage);
@@ -65,6 +107,54 @@ void main() {
     addTearDown(restoredState.dispose);
     await restoredState.initialize();
     expect(restoredState.sellerItems.last.sellerName, 'Yeni Satıcı');
+  });
+
+  test(
+    'updating a seller persists it and updates related alert source names',
+    () async {
+      final storage = MemoryAppStorage();
+      final appState = AppState(storage: storage);
+      addTearDown(appState.dispose);
+      await appState.initialize();
+
+      final original = appState.sellerItems.first;
+      final updated = original.copyWith(sellerName: 'Güncel Satıcı');
+
+      await appState.updateSellerItem(updated);
+
+      expect(appState.sellerItems.first.sellerName, 'Güncel Satıcı');
+      expect(
+        appState.alerts
+            .where(
+              (alert) =>
+                  alert.sourceType == 'seller' && alert.sourceId == original.id,
+            )
+            .every((alert) => alert.sourceName == 'Güncel Satıcı'),
+        isTrue,
+      );
+
+      final storedSellers = jsonDecode(storage.sellerItems!) as List<dynamic>;
+      expect(storedSellers.first['sellerName'], 'Güncel Satıcı');
+    },
+  );
+
+  test('updating an unknown id is safe and leaves storage untouched', () async {
+    final storage = MemoryAppStorage();
+    final appState = AppState(storage: storage);
+    addTearDown(appState.dispose);
+    await appState.initialize();
+
+    await appState.updateWatchItem(
+      appState.watchItems.first.copyWith(id: 'missing_product'),
+    );
+    await appState.updateSellerItem(
+      appState.sellerItems.first.copyWith(id: 'missing_seller'),
+    );
+
+    expect(appState.watchItems, hasLength(3));
+    expect(appState.sellerItems, hasLength(3));
+    expect(storage.watchItems, isNull);
+    expect(storage.sellerItems, isNull);
   });
 
   test('marking an alert read persists and restores its state', () async {

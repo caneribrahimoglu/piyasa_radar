@@ -5,9 +5,10 @@ import 'package:piyasa_radar/core/theme/app_spacing.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
+import 'package:piyasa_radar/features/seller_tracking/presentation/pages/add_seller_watch_page.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
-class SellerTrackingDetailPage extends StatelessWidget {
+class SellerTrackingDetailPage extends StatefulWidget {
   const SellerTrackingDetailPage({
     required this.item,
     required this.appState,
@@ -16,6 +17,38 @@ class SellerTrackingDetailPage extends StatelessWidget {
 
   final SellerWatchItem item;
   final AppState appState;
+
+  @override
+  State<SellerTrackingDetailPage> createState() =>
+      _SellerTrackingDetailPageState();
+}
+
+class _SellerTrackingDetailPageState extends State<SellerTrackingDetailPage> {
+  late SellerWatchItem _item;
+
+  @override
+  void initState() {
+    super.initState();
+    _item = widget.item;
+  }
+
+  Future<void> _openEditPage(BuildContext context) async {
+    final updatedItem = await Navigator.of(context).push<SellerWatchItem>(
+      MaterialPageRoute(
+        builder: (context) => AddSellerWatchPage(initialItem: _item),
+      ),
+    );
+
+    if (updatedItem == null || !context.mounted) return;
+
+    await widget.appState.updateSellerItem(updatedItem);
+    if (!context.mounted) return;
+
+    setState(() => _item = updatedItem);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Satıcı takibi güncellendi.')));
+  }
 
   Future<void> _confirmRemoval(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -39,7 +72,7 @@ class SellerTrackingDetailPage extends StatelessWidget {
     );
 
     if (confirmed != true || !context.mounted) return;
-    await appState.removeSellerItem(item.id);
+    await widget.appState.removeSellerItem(_item.id);
     if (context.mounted) Navigator.of(context).pop(true);
   }
 
@@ -49,6 +82,11 @@ class SellerTrackingDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Satıcı Detayı'),
         actions: [
+          IconButton(
+            tooltip: 'Düzenle',
+            onPressed: () => _openEditPage(context),
+            icon: const Icon(Icons.edit_outlined),
+          ),
           IconButton(
             tooltip: 'Takipten çıkar',
             onPressed: () => _confirmRemoval(context),
@@ -61,25 +99,25 @@ class SellerTrackingDetailPage extends StatelessWidget {
         child: ListView(
           children: [
             Text(
-              item.sellerName,
+              _item.sellerName,
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.lg),
-            _DetailRow(label: 'Pazaryeri', value: item.marketplaceName),
-            _DetailRow(label: 'Satıcı linki', value: item.sellerUrl),
+            _DetailRow(label: 'Pazaryeri', value: _item.marketplaceName),
+            _DetailRow(label: 'Satıcı linki', value: _item.sellerUrl),
             _DetailRow(
               label: 'Toplam ürün sayısı',
-              value: item.totalProducts.toString(),
+              value: _item.totalProducts.toString(),
             ),
             _DetailRow(
               label: 'Yeni ürün sayısı',
-              value: item.newProductsCount.toString(),
+              value: _item.newProductsCount.toString(),
             ),
             _DetailRow(
               label: 'Son kontrol zamanı',
-              value: item.formattedLastCheckedAt,
+              value: _item.formattedLastCheckedAt,
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -89,11 +127,11 @@ class SellerTrackingDetailPage extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.sm),
-            ...item.products.map((product) {
+            ..._item.products.map((product) {
               return _SellerProductTile(product: product);
             }),
             const SizedBox(height: AppSpacing.lg),
-            _SellerAlertHistory(alerts: item.alerts),
+            _SellerAlertHistory(alerts: _item.alerts),
           ],
         ),
       ),

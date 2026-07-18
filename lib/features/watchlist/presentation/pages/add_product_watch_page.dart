@@ -6,7 +6,9 @@ import 'package:piyasa_radar/shared/widgets/app_text_field.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
 class AddProductWatchPage extends StatefulWidget {
-  const AddProductWatchPage({super.key});
+  const AddProductWatchPage({super.key, this.initialItem});
+
+  final ProductWatchItem? initialItem;
 
   @override
   State<AddProductWatchPage> createState() => _AddProductWatchPageState();
@@ -21,6 +23,22 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
   final _targetPriceController = TextEditingController();
 
   bool _isStockTrackingEnabled = true;
+
+  bool get _isEditing => widget.initialItem != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialItem = widget.initialItem;
+    if (initialItem == null) return;
+
+    _productNameController.text = initialItem.productName;
+    _productLinkController.text = initialItem.productUrl;
+    _marketplaceNameController.text = initialItem.marketplaceName;
+    _sellerNameController.text = initialItem.sellerName;
+    _targetPriceController.text = initialItem.targetPrice?.toString() ?? '';
+    _isStockTrackingEnabled = initialItem.stockTrackingEnabled;
+  }
 
   @override
   void dispose() {
@@ -44,22 +62,32 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
     final sellerName = _sellerNameController.text.trim().isEmpty
         ? 'Bilinmeyen satıcı'
         : _sellerNameController.text.trim();
-    final newItem = ProductWatchItem(
-      id: 'product_${DateTime.now().microsecondsSinceEpoch}',
-      productName: _productNameController.text.trim(),
-      productUrl: _productLinkController.text.trim(),
-      checkTimes: FakeWatchlistRepository.defaultCheckTimes,
-      alerts: const [],
-      marketplaceName: _marketplaceNameController.text.trim(),
-      sellerName: sellerName,
-      lastPrice: 0,
-      previousPrice: 0,
-      targetPrice: targetPrice,
-      lastCheckedAt: DateTime.now(),
-      priceChanged: false,
-      stockTrackingEnabled: _isStockTrackingEnabled,
-      inStock: true,
-    );
+    final initialItem = widget.initialItem;
+    final newItem = initialItem == null
+        ? ProductWatchItem(
+            id: 'product_${DateTime.now().microsecondsSinceEpoch}',
+            productName: _productNameController.text.trim(),
+            productUrl: _productLinkController.text.trim(),
+            checkTimes: FakeWatchlistRepository.defaultCheckTimes,
+            alerts: const [],
+            marketplaceName: _marketplaceNameController.text.trim(),
+            sellerName: sellerName,
+            lastPrice: 0,
+            previousPrice: 0,
+            targetPrice: targetPrice,
+            lastCheckedAt: DateTime.now(),
+            priceChanged: false,
+            stockTrackingEnabled: _isStockTrackingEnabled,
+            inStock: true,
+          )
+        : initialItem.copyWith(
+            productName: _productNameController.text.trim(),
+            productUrl: _productLinkController.text.trim(),
+            marketplaceName: _marketplaceNameController.text.trim(),
+            sellerName: sellerName,
+            targetPrice: targetPrice,
+            stockTrackingEnabled: _isStockTrackingEnabled,
+          );
 
     Navigator.of(context).pop(newItem);
   }
@@ -87,7 +115,9 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ürün Takibe Al')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Ürün Takibini Düzenle' : 'Ürün Takibe Al'),
+      ),
       body: PageContainer(
         maxWidth: 800,
         child: Form(
@@ -136,7 +166,10 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
                 },
               ),
               const SizedBox(height: 16),
-              AppButton(label: 'Kaydet', onPressed: _saveForm),
+              AppButton(
+                label: _isEditing ? 'Güncelle' : 'Kaydet',
+                onPressed: _saveForm,
+              ),
             ],
           ),
         ),
