@@ -47,14 +47,15 @@ class ProductWatchItem {
   factory ProductWatchItem.fromJson(Map<String, dynamic> json) {
     final checkTimesJson = json['checkTimes'];
     final alertsJson = json['alerts'];
+    final id = json['id'] as String?;
 
     return ProductWatchItem(
-      id:
-          json['id'] as String? ??
-          _legacyId(
-            json['productName'] as String? ?? '',
-            json['productUrl'] as String? ?? '',
-          ),
+      id: id == null || id.trim().isEmpty
+          ? _legacyId(
+              json['productName'] as String? ?? '',
+              json['productUrl'] as String? ?? '',
+            )
+          : id,
       productName: json['productName'] as String? ?? '',
       productUrl: json['productUrl'] as String? ?? '',
       checkTimes: checkTimesJson is List
@@ -106,9 +107,9 @@ class ProductWatchItem {
   static String _twoDigits(int value) => value.toString().padLeft(2, '0');
 
   static String _legacyId(String name, String url) {
-    var hash = 2166136261;
+    var hash = 17;
     for (final codeUnit in '$name|$url'.codeUnits) {
-      hash = ((hash ^ codeUnit) * 16777619) & 0xFFFFFFFF;
+      hash = ((hash * 31) + codeUnit) & 0x7fffffff;
     }
     return 'product_legacy_${hash.toRadixString(16)}';
   }

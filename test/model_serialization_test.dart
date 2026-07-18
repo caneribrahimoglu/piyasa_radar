@@ -193,5 +193,59 @@ void main() {
     expect(sellerId, startsWith('seller_legacy_'));
     expect(ProductWatchItem.fromJson(productJson).id, productId);
     expect(SellerWatchItem.fromJson(sellerJson).id, sellerId);
+
+    expect(
+      ProductWatchItem.fromJson({
+        ...productJson,
+        'productName': 'Farklı Ürün',
+      }).id,
+      isNot(productId),
+    );
+    expect(
+      SellerWatchItem.fromJson({
+        ...sellerJson,
+        'sellerName': 'Farklı Satıcı',
+      }).id,
+      isNot(sellerId),
+    );
   });
+
+  test(
+    'null, empty, and whitespace ids use fallback while a full id is kept',
+    () {
+      final productJson = {
+        'productName': 'Legacy Product',
+        'productUrl': 'https://example.com/product',
+      };
+      final sellerJson = {
+        'sellerName': 'Legacy Seller',
+        'sellerUrl': 'https://example.com/seller',
+      };
+      final productFallback = ProductWatchItem.fromJson(productJson).id;
+      final sellerFallback = SellerWatchItem.fromJson(sellerJson).id;
+
+      for (final invalidId in <String?>[null, '', '   ']) {
+        expect(
+          ProductWatchItem.fromJson({...productJson, 'id': invalidId}).id,
+          productFallback,
+        );
+        expect(
+          SellerWatchItem.fromJson({...sellerJson, 'id': invalidId}).id,
+          sellerFallback,
+        );
+      }
+
+      expect(
+        ProductWatchItem.fromJson({
+          ...productJson,
+          'id': '  product_kept  ',
+        }).id,
+        '  product_kept  ',
+      );
+      expect(
+        SellerWatchItem.fromJson({...sellerJson, 'id': 'seller_kept'}).id,
+        'seller_kept',
+      );
+    },
+  );
 }
