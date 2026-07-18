@@ -138,6 +138,142 @@ void main() {
     },
   );
 
+  test('updating a product migrates legacy sourceId-free alerts', () async {
+    final storage = MemoryAppStorage();
+    final seedState = AppState(storage: storage);
+    addTearDown(seedState.dispose);
+    await seedState.initialize();
+    final product = seedState.watchItems.first;
+    final seller = seedState.sellerItems.first;
+    storage.alerts = jsonEncode([
+      {
+        'id': 'legacy-product-alert',
+        'sourceType': 'product',
+        'sourceId': '',
+        'sourceName': product.productName,
+        'title': 'Legacy product',
+        'message': 'Message',
+        'createdAt': DateTime(2026, 7, 18).toIso8601String(),
+        'isRead': false,
+      },
+      {
+        'id': 'same-name-seller-alert',
+        'sourceType': 'seller',
+        'sourceId': '',
+        'sourceName': product.productName,
+        'title': 'Unrelated seller',
+        'message': 'Message',
+        'createdAt': DateTime(2026, 7, 18, 1).toIso8601String(),
+        'isRead': false,
+      },
+      {
+        'id': 'unrelated-product-alert',
+        'sourceType': 'product',
+        'sourceId': '',
+        'sourceName': seller.sellerName,
+        'title': 'Unrelated product',
+        'message': 'Message',
+        'createdAt': DateTime(2026, 7, 18, 2).toIso8601String(),
+        'isRead': false,
+      },
+    ]);
+
+    final appState = AppState(storage: storage);
+    addTearDown(appState.dispose);
+    await appState.initialize();
+    await appState.updateWatchItem(
+      product.copyWith(productName: 'Migrated Product'),
+    );
+
+    final migrated = appState.alerts.singleWhere(
+      (alert) => alert.id == 'legacy-product-alert',
+    );
+    final unrelatedSeller = appState.alerts.singleWhere(
+      (alert) => alert.id == 'same-name-seller-alert',
+    );
+    final unrelatedProduct = appState.alerts.singleWhere(
+      (alert) => alert.id == 'unrelated-product-alert',
+    );
+
+    expect(migrated.sourceId, product.id);
+    expect(migrated.sourceName, 'Migrated Product');
+    expect(unrelatedSeller.sourceId, isEmpty);
+    expect(unrelatedSeller.sourceName, product.productName);
+    expect(unrelatedProduct.sourceId, isEmpty);
+    expect(unrelatedProduct.sourceName, seller.sellerName);
+
+    await appState.removeWatchItem(product.id);
+
+    expect(
+      appState.alerts.any((alert) => alert.id == 'legacy-product-alert'),
+      isFalse,
+    );
+    expect(
+      appState.alerts.any((alert) => alert.id == 'same-name-seller-alert'),
+      isTrue,
+    );
+  });
+
+  test('updating a seller migrates legacy sourceId-free alerts', () async {
+    final storage = MemoryAppStorage();
+    final seedState = AppState(storage: storage);
+    addTearDown(seedState.dispose);
+    await seedState.initialize();
+    final seller = seedState.sellerItems.first;
+    storage.alerts = jsonEncode([
+      {
+        'id': 'legacy-seller-alert',
+        'sourceType': 'seller',
+        'sourceId': '',
+        'sourceName': seller.sellerName,
+        'title': 'Legacy seller',
+        'message': 'Message',
+        'createdAt': DateTime(2026, 7, 18).toIso8601String(),
+        'isRead': false,
+      },
+      {
+        'id': 'same-name-product-alert',
+        'sourceType': 'product',
+        'sourceId': '',
+        'sourceName': seller.sellerName,
+        'title': 'Unrelated product',
+        'message': 'Message',
+        'createdAt': DateTime(2026, 7, 18, 1).toIso8601String(),
+        'isRead': false,
+      },
+    ]);
+
+    final appState = AppState(storage: storage);
+    addTearDown(appState.dispose);
+    await appState.initialize();
+    await appState.updateSellerItem(
+      seller.copyWith(sellerName: 'Migrated Seller'),
+    );
+
+    final migrated = appState.alerts.singleWhere(
+      (alert) => alert.id == 'legacy-seller-alert',
+    );
+    final unrelated = appState.alerts.singleWhere(
+      (alert) => alert.id == 'same-name-product-alert',
+    );
+
+    expect(migrated.sourceId, seller.id);
+    expect(migrated.sourceName, 'Migrated Seller');
+    expect(unrelated.sourceId, isEmpty);
+    expect(unrelated.sourceName, seller.sellerName);
+
+    await appState.removeSellerItem(seller.id);
+
+    expect(
+      appState.alerts.any((alert) => alert.id == 'legacy-seller-alert'),
+      isFalse,
+    );
+    expect(
+      appState.alerts.any((alert) => alert.id == 'same-name-product-alert'),
+      isTrue,
+    );
+  });
+
   test('updating an unknown id is safe and leaves storage untouched', () async {
     final storage = MemoryAppStorage();
     final appState = AppState(storage: storage);

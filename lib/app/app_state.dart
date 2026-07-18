@@ -161,6 +161,7 @@ class AppState extends ChangeNotifier {
             sourceType: 'product',
             sourceId: item.id,
             sourceName: item.productName,
+            previousSourceName: previousItem.productName,
           )
         : false;
 
@@ -184,6 +185,7 @@ class AppState extends ChangeNotifier {
             sourceType: 'seller',
             sourceId: item.id,
             sourceName: item.sellerName,
+            previousSourceName: previousItem.sellerName,
           )
         : false;
 
@@ -239,14 +241,24 @@ class AppState extends ChangeNotifier {
     required String sourceType,
     required String sourceId,
     required String sourceName,
+    required String previousSourceName,
   }) {
     var changed = false;
     for (var index = 0; index < _alerts.length; index += 1) {
       final alert = _alerts[index];
-      if (alert.sourceType == sourceType &&
-          alert.sourceId == sourceId &&
-          alert.sourceName != sourceName) {
-        _alerts[index] = alert.copyWith(sourceName: sourceName);
+      final sourceIdMatches =
+          alert.sourceType == sourceType && alert.sourceId == sourceId;
+      final legacyNameMatches =
+          alert.sourceType == sourceType &&
+          alert.sourceId.isEmpty &&
+          alert.sourceName == previousSourceName;
+
+      if ((sourceIdMatches || legacyNameMatches) &&
+          (alert.sourceId != sourceId || alert.sourceName != sourceName)) {
+        _alerts[index] = alert.copyWith(
+          sourceId: sourceId,
+          sourceName: sourceName,
+        );
         changed = true;
       }
     }
