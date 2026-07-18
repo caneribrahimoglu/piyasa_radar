@@ -4,12 +4,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:piyasa_radar/core/storage/app_storage.dart';
 import 'package:piyasa_radar/core/storage/shared_preferences_app_storage.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/alerts/data/repositories/fake_alerts_repository.dart';
 import 'package:piyasa_radar/features/alerts/domain/models/alert_summary_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/data/repositories/fake_seller_tracking_repository.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
 import 'package:piyasa_radar/features/watchlist/data/repositories/fake_watchlist_repository.dart';
+import 'package:piyasa_radar/features/watchlist/data/services/fake_product_tracking_service.dart';
+import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
+import 'package:piyasa_radar/features/watchlist/domain/models/product_check_result.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
+import 'package:piyasa_radar/features/watchlist/domain/services/product_tracking_service.dart';
 
 class AppState extends ChangeNotifier {
   AppState({
@@ -19,6 +24,7 @@ class AppState extends ChangeNotifier {
     FakeSellerTrackingRepository sellerTrackingRepository =
         const FakeSellerTrackingRepository(),
     FakeAlertsRepository? alertsRepository,
+    this.productTrackingService = const FakeProductTrackingService(),
   }) : _storage = storage ?? SharedPreferencesAppStorage(),
        _watchlistRepository = watchlistRepository,
        _sellerTrackingRepository = sellerTrackingRepository,
@@ -33,6 +39,7 @@ class AppState extends ChangeNotifier {
   final FakeWatchlistRepository _watchlistRepository;
   final FakeSellerTrackingRepository _sellerTrackingRepository;
   final FakeAlertsRepository _alertsRepository;
+  final ProductTrackingService productTrackingService;
 
   final List<ProductWatchItem> _watchItems = [];
   final List<SellerWatchItem> _sellerItems = [];
@@ -172,6 +179,56 @@ class AppState extends ChangeNotifier {
     ]);
   }
 
+  Future<ProductWatchItem?> checkWatchItemNow(String id) async {
+    final index = _watchItems.indexWhere((item) => item.id == id);
+    if (index == -1) return null;
+
+    final item = _watchItems[index];
+    if (item.checkStatus == TrackingCheckStatus.checking) return item;
+
+    _watchItems[index] = item.copyWith(
+      checkStatus: TrackingCheckStatus.checking,
+      lastCheckError: null,
+    );
+    notifyListeners();
+
+    try {
+      final result = await productTrackingService.checkProduct(item);
+      final updatedItem = _buildSuccessfulProductCheck(item, result);
+      final newAlerts = _buildProductCheckAlerts(
+        previousItem: item,
+        updatedItem: updatedItem,
+        checkedAt: result.checkedAt,
+      );
+
+      _watchItems[index] = updatedItem.copyWith(
+        alerts: [...newAlerts.productAlerts, ...updatedItem.alerts],
+      );
+      if (newAlerts.summaryAlerts.isNotEmpty) {
+        _alerts
+          ..addAll(newAlerts.summaryAlerts)
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      }
+
+      notifyListeners();
+      await Future.wait([
+        _persistWatchItems(),
+        if (newAlerts.summaryAlerts.isNotEmpty) _persistAlerts(),
+      ]);
+      return _watchItems[index];
+    } catch (error) {
+      final failedItem = item.copyWith(
+        checkStatus: TrackingCheckStatus.failed,
+        lastCheckedAt: DateTime.now(),
+        lastCheckError: _userFriendlyCheckError(error),
+      );
+      _watchItems[index] = failedItem;
+      notifyListeners();
+      await _persistWatchItems();
+      return failedItem;
+    }
+  }
+
   Future<void> updateSellerItem(SellerWatchItem item) async {
     final index = _sellerItems.indexWhere(
       (sellerItem) => sellerItem.id == item.id,
@@ -265,6 +322,117 @@ class AppState extends ChangeNotifier {
     return changed;
   }
 
+  ProductWatchItem _buildSuccessfulProductCheck(
+    ProductWatchItem item,
+    ProductCheckResult result,
+  ) {
+    final priceChanged = item.lastPrice > 0 && item.lastPrice != result.price;
+
+    return item.copyWith(
+      previousPrice: item.lastPrice,
+      lastPrice: result.price,
+      priceChanged: priceChanged,
+      inStock: result.inStock,
+      checkStatus: TrackingCheckStatus.success,
+      lastCheckedAt: result.checkedAt,
+      lastCheckError: null,
+    );
+  }
+
+  _ProductCheckAlerts _buildProductCheckAlerts({
+    required ProductWatchItem previousItem,
+    required ProductWatchItem updatedItem,
+    required DateTime checkedAt,
+  }) {
+    if (previousItem.lastPrice == 0) return const _ProductCheckAlerts();
+
+    final productAlerts = <AlertEvent>[];
+    final summaryAlerts = <AlertSummaryItem>[];
+
+    void addAlert({
+      required String title,
+      required String message,
+      required String type,
+    }) {
+      final alert = AlertEvent(
+        title: title,
+        message: message,
+        createdAt: checkedAt,
+        type: type,
+      );
+      productAlerts.add(alert);
+      summaryAlerts.add(
+        AlertSummaryItem(
+          id: _productAlertId(
+            updatedItem.id,
+            type,
+            checkedAt,
+            productAlerts.length,
+          ),
+          sourceType: 'product',
+          sourceId: updatedItem.id,
+          sourceName: updatedItem.productName,
+          title: title,
+          message: message,
+          createdAt: checkedAt,
+          isRead: false,
+        ),
+      );
+    }
+
+    if (previousItem.lastPrice != updatedItem.lastPrice) {
+      final priceDropped = updatedItem.lastPrice < previousItem.lastPrice;
+      addAlert(
+        title: priceDropped ? 'Fiyat düştü' : 'Fiyat yükseldi',
+        message:
+            'Fiyat ${previousItem.lastPrice} TL seviyesinden ${updatedItem.lastPrice} TL seviyesine geldi.',
+        type: priceDropped ? 'price_down' : 'price_up',
+      );
+    }
+
+    if (previousItem.stockTrackingEnabled &&
+        previousItem.inStock != updatedItem.inStock) {
+      addAlert(
+        title: updatedItem.inStock ? 'Stok geldi' : 'Stok bitti',
+        message: updatedItem.inStock
+            ? '${updatedItem.productName} yeniden stokta görünüyor.'
+            : '${updatedItem.productName} stokta görünmüyor.',
+        type: updatedItem.inStock ? 'stock_in' : 'stock_out',
+      );
+    }
+
+    final targetPrice = previousItem.targetPrice;
+    if (targetPrice != null &&
+        previousItem.lastPrice > targetPrice &&
+        updatedItem.lastPrice <= targetPrice) {
+      addAlert(
+        title: 'Hedef fiyata ulaştı',
+        message:
+            '${updatedItem.productName} hedef fiyatınız olan $targetPrice TL seviyesine ulaştı.',
+        type: 'target_price_reached',
+      );
+    }
+
+    return _ProductCheckAlerts(
+      productAlerts: productAlerts,
+      summaryAlerts: summaryAlerts,
+    );
+  }
+
+  String _productAlertId(
+    String productId,
+    String type,
+    DateTime checkedAt,
+    int sequence,
+  ) {
+    return 'product_alert_${productId}_${type}_${checkedAt.microsecondsSinceEpoch}_$sequence';
+  }
+
+  String _userFriendlyCheckError(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    return message.isEmpty ? 'Ürün kontrolü tamamlanamadı.' : message;
+  }
+
   Future<void> toggleTheme() async {
     final brightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
@@ -301,4 +469,14 @@ class AppState extends ChangeNotifier {
       // State remains available in memory when persistence fails.
     }
   }
+}
+
+class _ProductCheckAlerts {
+  const _ProductCheckAlerts({
+    this.productAlerts = const [],
+    this.summaryAlerts = const [],
+  });
+
+  final List<AlertEvent> productAlerts;
+  final List<AlertSummaryItem> summaryAlerts;
 }

@@ -250,6 +250,13 @@ void main() {
     expect(find.text('3000 TL'), findsOneWidget);
     expect(find.text('Son fiyat'), findsOneWidget);
     expect(find.text('3299 TL'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Önceki fiyat'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('Önceki fiyat'), findsOneWidget);
     expect(find.text('3499 TL'), findsOneWidget);
     await tester.scrollUntilVisible(

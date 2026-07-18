@@ -6,6 +6,7 @@ import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 import 'package:piyasa_radar/features/watchlist/presentation/pages/add_product_watch_page.dart';
+import 'package:piyasa_radar/shared/widgets/app_button.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
 class ProductWatchDetailPage extends StatefulWidget {
@@ -29,6 +30,25 @@ class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
   void initState() {
     super.initState();
     _item = widget.item;
+    widget.appState.addListener(_syncItemFromState);
+  }
+
+  @override
+  void dispose() {
+    widget.appState.removeListener(_syncItemFromState);
+    super.dispose();
+  }
+
+  void _syncItemFromState() {
+    final index = widget.appState.watchItems.indexWhere(
+      (item) => item.id == _item.id,
+    );
+    if (index == -1) return;
+
+    final latestItem = widget.appState.watchItems[index];
+    if (latestItem != _item && mounted) {
+      setState(() => _item = latestItem);
+    }
   }
 
   Future<void> _openEditPage(BuildContext context) async {
@@ -47,6 +67,19 @@ class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Ürün takibi güncellendi.')));
+  }
+
+  Future<void> _checkNow(BuildContext context) async {
+    final result = await widget.appState.checkWatchItemNow(_item.id);
+    if (!context.mounted || result == null) return;
+
+    setState(() => _item = result);
+    final message = result.checkStatus == TrackingCheckStatus.failed
+        ? 'Ürün kontrol edilemedi.'
+        : 'Ürün kontrol edildi.';
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _confirmRemoval(BuildContext context) async {
@@ -103,6 +136,23 @@ class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(
+              label: _item.checkStatus == TrackingCheckStatus.checking
+                  ? 'Kontrol ediliyor'
+                  : 'Şimdi kontrol et',
+              icon: _item.checkStatus == TrackingCheckStatus.checking
+                  ? Icons.hourglass_top
+                  : Icons.refresh,
+              fullWidth: true,
+              onPressed: _item.checkStatus == TrackingCheckStatus.checking
+                  ? null
+                  : () => _checkNow(context),
+            ),
+            if (_item.checkStatus == TrackingCheckStatus.checking) ...[
+              const SizedBox(height: AppSpacing.sm),
+              const LinearProgressIndicator(),
+            ],
             const SizedBox(height: AppSpacing.lg),
             _DetailRow(label: 'Ürün linki', value: _item.productUrl),
             _DetailRow(

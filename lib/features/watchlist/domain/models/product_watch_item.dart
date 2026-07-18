@@ -79,8 +79,11 @@ class ProductWatchItem {
       productName: json['productName'] as String? ?? '',
       productUrl: json['productUrl'] as String? ?? '',
       checkTimes: checkTimesJson is List
-          ? normalizeCheckTimes(checkTimesJson.whereType<String>())
-          : const [],
+          ? normalizeCheckTimes(
+              checkTimesJson.whereType<String>(),
+              fallback: defaultCheckTimes,
+            )
+          : defaultCheckTimes,
       alerts: alertsJson is List
           ? alertsJson
                 .whereType<Map>()

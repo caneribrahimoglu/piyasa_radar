@@ -369,7 +369,7 @@ void main() {
     final seller = SellerWatchItem.fromJson(const {});
     final alert = AlertSummaryItem.fromJson(const {});
 
-    expect(product.checkTimes, isEmpty);
+    expect(product.checkTimes, defaultCheckTimes);
     expect(product.alerts, isEmpty);
     expect(product.stockTrackingEnabled, isTrue);
     expect(seller.products, isEmpty);
