@@ -11,6 +11,24 @@ class SellerAlertEvent {
   final DateTime createdAt;
   final String type;
 
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'message': message,
+    'createdAt': createdAt.toIso8601String(),
+    'type': type,
+  };
+
+  factory SellerAlertEvent.fromJson(Map<String, dynamic> json) {
+    return SellerAlertEvent(
+      title: json['title'] as String? ?? '',
+      message: json['message'] as String? ?? '',
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      type: json['type'] as String? ?? '',
+    );
+  }
+
   String get formattedCreatedAt {
     final day = _twoDigits(createdAt.day);
     final month = _twoDigits(createdAt.month);

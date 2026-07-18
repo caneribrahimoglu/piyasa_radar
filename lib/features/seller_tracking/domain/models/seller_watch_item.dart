@@ -22,6 +22,53 @@ class SellerWatchItem {
   final List<SellerProductItem> products;
   final List<SellerAlertEvent> alerts;
 
+  Map<String, dynamic> toJson() => {
+    'sellerName': sellerName,
+    'marketplaceName': marketplaceName,
+    'sellerUrl': sellerUrl,
+    'totalProducts': totalProducts,
+    'newProductsCount': newProductsCount,
+    'lastCheckedAt': lastCheckedAt.toIso8601String(),
+    'products': products.map((product) => product.toJson()).toList(),
+    'alerts': alerts.map((alert) => alert.toJson()).toList(),
+  };
+
+  factory SellerWatchItem.fromJson(Map<String, dynamic> json) {
+    final productsJson = json['products'];
+    final alertsJson = json['alerts'];
+
+    return SellerWatchItem(
+      sellerName: json['sellerName'] as String? ?? '',
+      marketplaceName: json['marketplaceName'] as String? ?? '',
+      sellerUrl: json['sellerUrl'] as String? ?? '',
+      totalProducts: (json['totalProducts'] as num?)?.toInt() ?? 0,
+      newProductsCount: (json['newProductsCount'] as num?)?.toInt() ?? 0,
+      lastCheckedAt:
+          DateTime.tryParse(json['lastCheckedAt'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      products: productsJson is List
+          ? productsJson
+                .whereType<Map>()
+                .map(
+                  (product) => SellerProductItem.fromJson(
+                    Map<String, dynamic>.from(product),
+                  ),
+                )
+                .toList()
+          : const [],
+      alerts: alertsJson is List
+          ? alertsJson
+                .whereType<Map>()
+                .map(
+                  (alert) => SellerAlertEvent.fromJson(
+                    Map<String, dynamic>.from(alert),
+                  ),
+                )
+                .toList()
+          : const [],
+    );
+  }
+
   String get formattedLastCheckedAt {
     final day = _twoDigits(lastCheckedAt.day);
     final month = _twoDigits(lastCheckedAt.month);

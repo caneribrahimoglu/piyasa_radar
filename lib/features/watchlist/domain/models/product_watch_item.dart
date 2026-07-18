@@ -27,6 +27,51 @@ class ProductWatchItem {
   final bool priceChanged;
   final bool inStock;
 
+  Map<String, dynamic> toJson() => {
+    'productName': productName,
+    'productUrl': productUrl,
+    'checkTimes': checkTimes,
+    'alerts': alerts.map((alert) => alert.toJson()).toList(),
+    'marketplaceName': marketplaceName,
+    'sellerName': sellerName,
+    'lastPrice': lastPrice,
+    'previousPrice': previousPrice,
+    'lastCheckedAt': lastCheckedAt.toIso8601String(),
+    'priceChanged': priceChanged,
+    'inStock': inStock,
+  };
+
+  factory ProductWatchItem.fromJson(Map<String, dynamic> json) {
+    final checkTimesJson = json['checkTimes'];
+    final alertsJson = json['alerts'];
+
+    return ProductWatchItem(
+      productName: json['productName'] as String? ?? '',
+      productUrl: json['productUrl'] as String? ?? '',
+      checkTimes: checkTimesJson is List
+          ? checkTimesJson.whereType<String>().toList()
+          : const [],
+      alerts: alertsJson is List
+          ? alertsJson
+                .whereType<Map>()
+                .map(
+                  (alert) =>
+                      AlertEvent.fromJson(Map<String, dynamic>.from(alert)),
+                )
+                .toList()
+          : const [],
+      marketplaceName: json['marketplaceName'] as String? ?? '',
+      sellerName: json['sellerName'] as String? ?? '',
+      lastPrice: (json['lastPrice'] as num?)?.toInt() ?? 0,
+      previousPrice: (json['previousPrice'] as num?)?.toInt() ?? 0,
+      lastCheckedAt:
+          DateTime.tryParse(json['lastCheckedAt'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      priceChanged: json['priceChanged'] as bool? ?? false,
+      inStock: json['inStock'] as bool? ?? false,
+    );
+  }
+
   bool get priceIncreased => lastPrice > previousPrice;
 
   bool get priceDecreased => lastPrice < previousPrice;

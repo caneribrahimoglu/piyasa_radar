@@ -17,6 +17,31 @@ class AlertSummaryItem {
   final DateTime createdAt;
   final bool isRead;
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'sourceType': sourceType,
+    'sourceName': sourceName,
+    'title': title,
+    'message': message,
+    'createdAt': createdAt.toIso8601String(),
+    'isRead': isRead,
+  };
+
+  factory AlertSummaryItem.fromJson(Map<String, dynamic> json) {
+    final sourceType = json['sourceType'];
+    return AlertSummaryItem(
+      id: json['id'] as String? ?? '',
+      sourceType: sourceType == 'seller' ? 'seller' : 'product',
+      sourceName: json['sourceName'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      message: json['message'] as String? ?? '',
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      isRead: json['isRead'] as bool? ?? false,
+    );
+  }
+
   AlertSummaryItem copyWith({
     String? id,
     String? sourceType,
