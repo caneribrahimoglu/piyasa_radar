@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piyasa_radar/app/app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   testWidgets('shows dashboard summary on app start', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
 
     expect(find.text('Piyasa Radar'), findsOneWidget);
     expect(find.text('Özet'), findsNWidgets(2));
@@ -28,6 +31,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ürün Takibi'));
     await tester.pumpAndSettle();
 
@@ -71,6 +75,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Satıcı Takibi'));
     await tester.pumpAndSettle();
@@ -97,6 +102,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Satıcı Takibi'));
     await tester.pumpAndSettle();
@@ -161,6 +167,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Satıcı Takibi'));
     await tester.pumpAndSettle();
@@ -182,6 +189,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ürün Takibi'));
     await tester.pumpAndSettle();
 
@@ -210,6 +218,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ürün Takibi'));
     await tester.pumpAndSettle();
 
@@ -271,6 +280,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ürün Takibi'));
     await tester.pumpAndSettle();
 
@@ -335,6 +345,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ürün Takibi'));
     await tester.pumpAndSettle();
 

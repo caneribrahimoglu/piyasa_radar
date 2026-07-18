@@ -6,10 +6,13 @@ import 'package:piyasa_radar/features/dashboard/presentation/pages/dashboard_pag
 import 'package:piyasa_radar/features/watchlist/data/repositories/fake_watchlist_repository.dart';
 import 'package:piyasa_radar/shared/widgets/app_card.dart';
 
+import 'helpers/memory_app_storage.dart';
+
 void main() {
-  test('calculates dashboard values from the provided state lists', () {
-    final appState = AppState();
+  test('calculates dashboard values from the provided state lists', () async {
+    final appState = AppState(storage: MemoryAppStorage());
     addTearDown(appState.dispose);
+    await appState.initialize();
 
     final summary = const FakeDashboardRepository().getSummary(
       watchItems: appState.watchItems,
@@ -28,8 +31,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final appState = AppState();
+    final appState = AppState(storage: MemoryAppStorage());
     addTearDown(appState.dispose);
+    await appState.initialize();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -49,8 +53,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final appState = AppState();
+    final appState = AppState(storage: MemoryAppStorage());
     addTearDown(appState.dispose);
+    await appState.initialize();
 
     await tester.pumpWidget(
       MaterialApp(

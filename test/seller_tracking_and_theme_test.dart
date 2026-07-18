@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piyasa_radar/app/app.dart';
 import 'package:piyasa_radar/app/app_home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   testWidgets('theme button toggles between light and dark mode', (
     tester,
   ) async {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
-    addTearDown(
-      tester.platformDispatcher.clearPlatformBrightnessTestValue,
-    );
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
 
     expect(
       Theme.of(tester.element(find.byType(AppHomePage))).brightness,
@@ -43,6 +44,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Satıcı Takibi'));
     await tester.pumpAndSettle();
 

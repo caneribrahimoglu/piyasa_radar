@@ -6,14 +6,9 @@ import 'package:piyasa_radar/features/seller_tracking/presentation/pages/seller_
 import 'package:piyasa_radar/features/watchlist/presentation/pages/watchlist_home_page.dart';
 
 class AppHomePage extends StatelessWidget {
-  const AppHomePage({
-    required this.appState,
-    required this.onToggleTheme,
-    super.key,
-  });
+  const AppHomePage({required this.appState, super.key});
 
   final AppState appState;
-  final ValueChanged<Brightness> onToggleTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +26,7 @@ class AppHomePage extends StatelessWidget {
                 return IconButton(
                   key: const Key('theme-toggle-button'),
                   tooltip: isDark ? 'Açık temaya geç' : 'Koyu temaya geç',
-                  onPressed: () => onToggleTheme(brightness),
+                  onPressed: appState.toggleTheme,
                   icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
                 );
               },

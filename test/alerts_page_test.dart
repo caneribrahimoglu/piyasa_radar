@@ -5,6 +5,9 @@ import 'package:piyasa_radar/app/app_state.dart';
 import 'package:piyasa_radar/features/alerts/data/repositories/fake_alerts_repository.dart';
 import 'package:piyasa_radar/features/alerts/domain/models/alert_summary_item.dart';
 import 'package:piyasa_radar/features/alerts/presentation/pages/alerts_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/memory_app_storage.dart';
 
 class _EmptyAlertsRepository extends FakeAlertsRepository {
   const _EmptyAlertsRepository();
@@ -14,6 +17,7 @@ class _EmptyAlertsRepository extends FakeAlertsRepository {
 }
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   test('combines product and seller alerts newest first', () {
     final alerts = const FakeAlertsRepository().getAlerts();
 
@@ -38,6 +42,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Alertler'));
     await tester.pumpAndSettle();
 
@@ -55,8 +60,12 @@ void main() {
   });
 
   testWidgets('shows the empty alerts state', (tester) async {
-    final appState = AppState(alertsRepository: const _EmptyAlertsRepository());
+    final appState = AppState(
+      storage: MemoryAppStorage(),
+      alertsRepository: const _EmptyAlertsRepository(),
+    );
     addTearDown(appState.dispose);
+    await appState.initialize();
     await tester.pumpWidget(MaterialApp(home: AlertsPage(appState: appState)));
 
     expect(find.text('Henüz alert yok'), findsOneWidget);

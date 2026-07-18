@@ -11,13 +11,13 @@ class PiyasaRadarApp extends StatefulWidget {
 }
 
 class _PiyasaRadarAppState extends State<PiyasaRadarApp> {
-  ThemeMode _themeMode = ThemeMode.system;
   late final AppState _appState;
 
   @override
   void initState() {
     super.initState();
     _appState = AppState();
+    _appState.initialize();
   }
 
   @override
@@ -26,24 +26,20 @@ class _PiyasaRadarAppState extends State<PiyasaRadarApp> {
     super.dispose();
   }
 
-  void _toggleTheme(Brightness brightness) {
-    setState(() {
-      final isDark =
-          _themeMode == ThemeMode.dark ||
-          (_themeMode == ThemeMode.system && brightness == Brightness.dark);
-      _themeMode = isDark ? ThemeMode.light : ThemeMode.dark;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Piyasa Radar',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: _themeMode,
-      home: AppHomePage(appState: _appState, onToggleTheme: _toggleTheme),
+    return AnimatedBuilder(
+      animation: _appState,
+      builder: (context, child) => MaterialApp(
+        title: 'Piyasa Radar',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: _appState.themeMode,
+        home: _appState.isInitialized
+            ? AppHomePage(appState: _appState)
+            : const Scaffold(body: Center(child: CircularProgressIndicator())),
+      ),
     );
   }
 }
