@@ -104,6 +104,16 @@ void main() {
     expect(find.widgetWithText(TextFormField, item.sellerName), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '3000'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Güncelle'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Kontrol saatleri'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('09:00'), findsOneWidget);
+    expect(find.text('14:00'), findsOneWidget);
+    expect(find.text('20:00'), findsOneWidget);
   });
 
   testWidgets(
@@ -164,6 +174,21 @@ void main() {
         find.widgetWithText(TextFormField, item.marketplaceName),
         findsOneWidget,
       );
+      await tester.scrollUntilVisible(
+        find.text('Kontrol saatleri'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('09:00'), findsOneWidget);
+      expect(find.text('14:00'), findsOneWidget);
+      expect(find.text('20:00'), findsOneWidget);
+
+      await tester.ensureVisible(
+        find.widgetWithText(TextFormField, item.sellerName),
+      );
+      await tester.pumpAndSettle();
 
       await tester.enterText(
         find.widgetWithText(TextFormField, item.sellerName),
@@ -185,6 +210,78 @@ void main() {
       expect(result.alerts, item.alerts);
     },
   );
+
+  testWidgets('product form requires at least one check time', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: AddProductWatchPage()));
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Ürün adı'),
+      'Test Ürünü',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Ürün linki'),
+      'https://example.com/product',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Pazaryeri/Site'),
+      'Test Pazarı',
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Kontrol saatleri'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    for (var index = 0; index < 3; index += 1) {
+      await tester.tap(find.byIcon(Icons.cancel).first);
+      await tester.pumpAndSettle();
+    }
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.pump();
+
+    expect(find.text('En az bir kontrol saati seçmelisiniz.'), findsOneWidget);
+  });
+
+  testWidgets('seller form requires at least one check time', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: AddSellerWatchPage()));
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Satıcı adı'),
+      'Test Satıcı',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Satıcı linki'),
+      'https://example.com/seller',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Pazaryeri/Site'),
+      'Test Pazarı',
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Kontrol saatleri'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    for (var index = 0; index < 3; index += 1) {
+      await tester.tap(find.byIcon(Icons.cancel).first);
+      await tester.pumpAndSettle();
+    }
+
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.pump();
+
+    expect(find.text('En az bir kontrol saati seçmelisiniz.'), findsOneWidget);
+  });
 
   testWidgets('product detail updates immediately after editing', (
     tester,

@@ -1,3 +1,4 @@
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
 
@@ -7,6 +8,7 @@ class SellerWatchItem {
     required this.sellerName,
     required this.marketplaceName,
     required this.sellerUrl,
+    required this.checkTimes,
     required this.totalProducts,
     required this.newProductsCount,
     required this.lastCheckedAt,
@@ -18,6 +20,7 @@ class SellerWatchItem {
   final String sellerName;
   final String marketplaceName;
   final String sellerUrl;
+  final List<String> checkTimes;
   final int totalProducts;
   final int newProductsCount;
   final DateTime lastCheckedAt;
@@ -29,6 +32,7 @@ class SellerWatchItem {
     'sellerName': sellerName,
     'marketplaceName': marketplaceName,
     'sellerUrl': sellerUrl,
+    'checkTimes': checkTimes,
     'totalProducts': totalProducts,
     'newProductsCount': newProductsCount,
     'lastCheckedAt': lastCheckedAt.toIso8601String(),
@@ -39,6 +43,7 @@ class SellerWatchItem {
   factory SellerWatchItem.fromJson(Map<String, dynamic> json) {
     final productsJson = json['products'];
     final alertsJson = json['alerts'];
+    final checkTimesJson = json['checkTimes'];
     final id = json['id'] as String?;
 
     return SellerWatchItem(
@@ -51,6 +56,12 @@ class SellerWatchItem {
       sellerName: json['sellerName'] as String? ?? '',
       marketplaceName: json['marketplaceName'] as String? ?? '',
       sellerUrl: json['sellerUrl'] as String? ?? '',
+      checkTimes: checkTimesJson is List
+          ? normalizeCheckTimes(
+              checkTimesJson.whereType<String>(),
+              fallback: defaultCheckTimes,
+            )
+          : defaultCheckTimes,
       totalProducts: (json['totalProducts'] as num?)?.toInt() ?? 0,
       newProductsCount: (json['newProductsCount'] as num?)?.toInt() ?? 0,
       lastCheckedAt:
@@ -84,6 +95,7 @@ class SellerWatchItem {
     String? sellerName,
     String? marketplaceName,
     String? sellerUrl,
+    List<String>? checkTimes,
     int? totalProducts,
     int? newProductsCount,
     DateTime? lastCheckedAt,
@@ -95,6 +107,9 @@ class SellerWatchItem {
       sellerName: sellerName ?? this.sellerName,
       marketplaceName: marketplaceName ?? this.marketplaceName,
       sellerUrl: sellerUrl ?? this.sellerUrl,
+      checkTimes: checkTimes == null
+          ? this.checkTimes
+          : normalizeCheckTimes(checkTimes, fallback: defaultCheckTimes),
       totalProducts: totalProducts ?? this.totalProducts,
       newProductsCount: newProductsCount ?? this.newProductsCount,
       lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
@@ -102,6 +117,8 @@ class SellerWatchItem {
       alerts: alerts ?? this.alerts,
     );
   }
+
+  String get formattedCheckTimes => checkTimes.join(', ');
 
   String get formattedLastCheckedAt {
     final day = _twoDigits(lastCheckedAt.day);

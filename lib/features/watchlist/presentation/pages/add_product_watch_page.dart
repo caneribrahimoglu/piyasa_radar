@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:piyasa_radar/features/watchlist/data/repositories/fake_watchlist_repository.dart';
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 import 'package:piyasa_radar/shared/widgets/app_button.dart';
 import 'package:piyasa_radar/shared/widgets/app_text_field.dart';
+import 'package:piyasa_radar/shared/widgets/check_time_editor.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
 class AddProductWatchPage extends StatefulWidget {
@@ -23,6 +24,8 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
   final _targetPriceController = TextEditingController();
 
   bool _isStockTrackingEnabled = true;
+  List<String> _checkTimes = defaultCheckTimes;
+  String? _checkTimesErrorText;
 
   bool get _isEditing => widget.initialItem != null;
 
@@ -38,6 +41,7 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
     _sellerNameController.text = initialItem.sellerName;
     _targetPriceController.text = initialItem.targetPrice?.toString() ?? '';
     _isStockTrackingEnabled = initialItem.stockTrackingEnabled;
+    _checkTimes = normalizeCheckTimes(initialItem.checkTimes);
   }
 
   @override
@@ -54,6 +58,12 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
+    if (_checkTimes.isEmpty) {
+      setState(() {
+        _checkTimesErrorText = 'En az bir kontrol saati seçmelisiniz.';
+      });
+      return;
+    }
 
     final targetPriceText = _targetPriceController.text.trim();
     final targetPrice = targetPriceText.isEmpty
@@ -68,7 +78,7 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
             id: 'product_${DateTime.now().microsecondsSinceEpoch}',
             productName: _productNameController.text.trim(),
             productUrl: _productLinkController.text.trim(),
-            checkTimes: FakeWatchlistRepository.defaultCheckTimes,
+            checkTimes: _checkTimes,
             alerts: const [],
             marketplaceName: _marketplaceNameController.text.trim(),
             sellerName: sellerName,
@@ -83,6 +93,7 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
         : initialItem.copyWith(
             productName: _productNameController.text.trim(),
             productUrl: _productLinkController.text.trim(),
+            checkTimes: _checkTimes,
             marketplaceName: _marketplaceNameController.text.trim(),
             sellerName: sellerName,
             targetPrice: targetPrice,
@@ -169,6 +180,17 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
               AppButton(
                 label: _isEditing ? 'Güncelle' : 'Kaydet',
                 onPressed: _saveForm,
+              ),
+              const SizedBox(height: 16),
+              CheckTimeEditor(
+                times: _checkTimes,
+                errorText: _checkTimesErrorText,
+                onChanged: (times) {
+                  setState(() {
+                    _checkTimes = times;
+                    _checkTimesErrorText = null;
+                  });
+                },
               ),
             ],
           ),

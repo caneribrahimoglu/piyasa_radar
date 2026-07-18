@@ -119,6 +119,8 @@ void main() {
       find.text('https://www.trendyol.com/magaza/teknolojiplus'),
       findsOneWidget,
     );
+    expect(find.text('Kontrol saatleri'), findsOneWidget);
+    expect(find.text('09:00, 14:00, 20:00'), findsOneWidget);
     expect(find.text('Toplam ürün sayısı'), findsOneWidget);
     expect(find.text('128'), findsOneWidget);
     expect(find.text('Yeni ürün sayısı'), findsOneWidget);

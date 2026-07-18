@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piyasa_radar/app/app_state.dart';
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
 import 'package:piyasa_radar/features/watchlist/data/repositories/fake_watchlist_repository.dart';
 
@@ -49,11 +50,15 @@ void main() {
       await appState.initialize();
 
       final original = appState.watchItems.first;
-      final updated = original.copyWith(productName: 'Güncel Ürün');
+      final updated = original.copyWith(
+        productName: 'Güncel Ürün',
+        checkTimes: const ['18:00', '08:00'],
+      );
 
       await appState.updateWatchItem(updated);
 
       expect(appState.watchItems.first.productName, 'Güncel Ürün');
+      expect(appState.watchItems.first.checkTimes, const ['08:00', '18:00']);
       expect(
         appState.alerts
             .where(
@@ -67,6 +72,7 @@ void main() {
 
       final storedProducts = jsonDecode(storage.watchItems!) as List<dynamic>;
       expect(storedProducts.first['productName'], 'Güncel Ürün');
+      expect(storedProducts.first['checkTimes'], const ['08:00', '18:00']);
 
       final storedAlerts = jsonDecode(storage.alerts!) as List<dynamic>;
       expect(
@@ -92,6 +98,7 @@ void main() {
       sellerName: 'Yeni Satıcı',
       marketplaceName: 'Pazar',
       sellerUrl: 'https://example.com',
+      checkTimes: defaultCheckTimes,
       totalProducts: 0,
       newProductsCount: 0,
       lastCheckedAt: DateTime(2026),
@@ -118,11 +125,15 @@ void main() {
       await appState.initialize();
 
       final original = appState.sellerItems.first;
-      final updated = original.copyWith(sellerName: 'Güncel Satıcı');
+      final updated = original.copyWith(
+        sellerName: 'Güncel Satıcı',
+        checkTimes: const ['19:00', '07:00'],
+      );
 
       await appState.updateSellerItem(updated);
 
       expect(appState.sellerItems.first.sellerName, 'Güncel Satıcı');
+      expect(appState.sellerItems.first.checkTimes, const ['07:00', '19:00']);
       expect(
         appState.alerts
             .where(
@@ -135,6 +146,7 @@ void main() {
 
       final storedSellers = jsonDecode(storage.sellerItems!) as List<dynamic>;
       expect(storedSellers.first['sellerName'], 'Güncel Satıcı');
+      expect(storedSellers.first['checkTimes'], const ['07:00', '19:00']);
     },
   );
 

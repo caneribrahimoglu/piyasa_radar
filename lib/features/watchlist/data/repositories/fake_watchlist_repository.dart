@@ -1,10 +1,9 @@
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 
 class FakeWatchlistRepository {
   const FakeWatchlistRepository();
-
-  static const List<String> defaultCheckTimes = ['09:00', '14:00', '20:00'];
 
   List<ProductWatchItem> getWatchItems() {
     return [

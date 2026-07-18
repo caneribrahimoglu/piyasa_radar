@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
 import 'package:piyasa_radar/shared/widgets/app_button.dart';
 import 'package:piyasa_radar/shared/widgets/app_text_field.dart';
+import 'package:piyasa_radar/shared/widgets/check_time_editor.dart';
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
 class AddSellerWatchPage extends StatefulWidget {
@@ -18,6 +20,8 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
   final _sellerNameController = TextEditingController();
   final _sellerLinkController = TextEditingController();
   final _marketplaceNameController = TextEditingController();
+  List<String> _checkTimes = defaultCheckTimes;
+  String? _checkTimesErrorText;
 
   bool get _isEditing => widget.initialItem != null;
 
@@ -30,6 +34,10 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
     _sellerNameController.text = initialItem.sellerName;
     _sellerLinkController.text = initialItem.sellerUrl;
     _marketplaceNameController.text = initialItem.marketplaceName;
+    _checkTimes = normalizeCheckTimes(
+      initialItem.checkTimes,
+      fallback: defaultCheckTimes,
+    );
   }
 
   @override
@@ -52,6 +60,12 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
+    if (_checkTimes.isEmpty) {
+      setState(() {
+        _checkTimesErrorText = 'En az bir kontrol saati seçmelisiniz.';
+      });
+      return;
+    }
 
     final initialItem = widget.initialItem;
     final newSeller = initialItem == null
@@ -60,6 +74,7 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
             sellerName: _sellerNameController.text.trim(),
             sellerUrl: _sellerLinkController.text.trim(),
             marketplaceName: _marketplaceNameController.text.trim(),
+            checkTimes: _checkTimes,
             totalProducts: 0,
             newProductsCount: 0,
             lastCheckedAt: DateTime.now(),
@@ -70,6 +85,7 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
             sellerName: _sellerNameController.text.trim(),
             sellerUrl: _sellerLinkController.text.trim(),
             marketplaceName: _marketplaceNameController.text.trim(),
+            checkTimes: _checkTimes,
           );
 
     Navigator.of(context).pop(newSeller);
@@ -111,6 +127,17 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
               AppButton(
                 label: _isEditing ? 'Güncelle' : 'Kaydet',
                 onPressed: _saveForm,
+              ),
+              const SizedBox(height: 16),
+              CheckTimeEditor(
+                times: _checkTimes,
+                errorText: _checkTimesErrorText,
+                onChanged: (times) {
+                  setState(() {
+                    _checkTimes = times;
+                    _checkTimesErrorText = null;
+                  });
+                },
               ),
             ],
           ),

@@ -108,6 +108,10 @@ class _SellerTrackingDetailPageState extends State<SellerTrackingDetailPage> {
             _DetailRow(label: 'Pazaryeri', value: _item.marketplaceName),
             _DetailRow(label: 'Satıcı linki', value: _item.sellerUrl),
             _DetailRow(
+              label: 'Kontrol saatleri',
+              value: _item.formattedCheckTimes,
+            ),
+            _DetailRow(
               label: 'Toplam ürün sayısı',
               value: _item.totalProducts.toString(),
             ),

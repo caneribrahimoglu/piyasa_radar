@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/alerts/domain/models/alert_summary_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
@@ -176,6 +177,7 @@ void main() {
       sellerName: 'Satıcı',
       marketplaceName: 'Pazar',
       sellerUrl: 'https://example.com/seller',
+      checkTimes: const ['08:00', '16:00'],
       totalProducts: 10,
       newProductsCount: 1,
       lastCheckedAt: createdAt,
@@ -202,6 +204,7 @@ void main() {
 
     expect(restored.sellerName, original.sellerName);
     expect(restored.id, original.id);
+    expect(restored.checkTimes, original.checkTimes);
     expect(restored.lastCheckedAt, createdAt);
     expect(restored.products, hasLength(1));
     expect(restored.products.first.price, 99.5);
@@ -217,6 +220,7 @@ void main() {
       sellerName: 'Satıcı',
       marketplaceName: 'Pazar',
       sellerUrl: 'https://example.com/seller',
+      checkTimes: const ['09:00'],
       totalProducts: 10,
       newProductsCount: 1,
       lastCheckedAt: createdAt,
@@ -229,6 +233,7 @@ void main() {
       sellerName: 'Yeni Satıcı',
       marketplaceName: 'Yeni Pazar',
       sellerUrl: 'https://example.com/new-seller',
+      checkTimes: const ['18:00', '08:00', '8:00'],
       totalProducts: 20,
       newProductsCount: 3,
       lastCheckedAt: updatedTime,
@@ -255,11 +260,21 @@ void main() {
     expect(updated.sellerName, 'Yeni Satıcı');
     expect(updated.marketplaceName, 'Yeni Pazar');
     expect(updated.sellerUrl, 'https://example.com/new-seller');
+    expect(updated.checkTimes, const ['08:00', '18:00']);
     expect(updated.totalProducts, 20);
     expect(updated.newProductsCount, 3);
     expect(updated.lastCheckedAt, updatedTime);
     expect(updated.products, hasLength(1));
     expect(updated.alerts, hasLength(1));
+  });
+
+  test('SellerWatchItem uses default check times for legacy JSON', () {
+    final restored = SellerWatchItem.fromJson({
+      'sellerName': 'Legacy seller',
+      'sellerUrl': 'https://example.com/seller',
+    });
+
+    expect(restored.checkTimes, defaultCheckTimes);
   });
 
   test(
@@ -301,6 +316,7 @@ void main() {
     expect(product.stockTrackingEnabled, isTrue);
     expect(seller.products, isEmpty);
     expect(seller.alerts, isEmpty);
+    expect(seller.checkTimes, defaultCheckTimes);
     expect(alert.sourceType, 'product');
     expect(alert.isRead, isFalse);
   });

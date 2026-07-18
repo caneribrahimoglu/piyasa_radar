@@ -1,3 +1,4 @@
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
@@ -12,6 +13,7 @@ class FakeSellerTrackingRepository {
         sellerName: 'TeknolojiPlus',
         marketplaceName: 'Trendyol',
         sellerUrl: 'https://www.trendyol.com/magaza/teknolojiplus',
+        checkTimes: defaultCheckTimes,
         totalProducts: 128,
         newProductsCount: 6,
         lastCheckedAt: DateTime(2026, 7, 17, 14, 20),
@@ -52,6 +54,7 @@ class FakeSellerTrackingRepository {
         sellerName: 'DepoMarket',
         marketplaceName: 'Hepsiburada',
         sellerUrl: 'https://www.hepsiburada.com/magaza/depomarket',
+        checkTimes: defaultCheckTimes,
         totalProducts: 84,
         newProductsCount: 2,
         lastCheckedAt: DateTime(2026, 7, 17, 13, 45),
@@ -85,6 +88,7 @@ class FakeSellerTrackingRepository {
         sellerName: 'CepDükkanı',
         marketplaceName: 'N11',
         sellerUrl: 'https://www.n11.com/magaza/cepdukkani',
+        checkTimes: defaultCheckTimes,
         totalProducts: 46,
         newProductsCount: 4,
         lastCheckedAt: DateTime(2026, 7, 16, 21, 30),

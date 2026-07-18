@@ -1,3 +1,4 @@
+import 'package:piyasa_radar/core/constants/default_check_times.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 
 const Object _copyWithSentinel = Object();
@@ -67,7 +68,7 @@ class ProductWatchItem {
       productName: json['productName'] as String? ?? '',
       productUrl: json['productUrl'] as String? ?? '',
       checkTimes: checkTimesJson is List
-          ? checkTimesJson.whereType<String>().toList()
+          ? normalizeCheckTimes(checkTimesJson.whereType<String>())
           : const [],
       alerts: alertsJson is List
           ? alertsJson
@@ -112,7 +113,9 @@ class ProductWatchItem {
       id: id ?? this.id,
       productName: productName ?? this.productName,
       productUrl: productUrl ?? this.productUrl,
-      checkTimes: checkTimes ?? this.checkTimes,
+      checkTimes: checkTimes == null
+          ? this.checkTimes
+          : normalizeCheckTimes(checkTimes),
       alerts: alerts ?? this.alerts,
       marketplaceName: marketplaceName ?? this.marketplaceName,
       sellerName: sellerName ?? this.sellerName,
