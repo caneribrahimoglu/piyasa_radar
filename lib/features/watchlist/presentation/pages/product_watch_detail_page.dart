@@ -73,6 +73,7 @@ class ProductWatchDetailPage extends StatelessWidget {
             ),
             _DetailRow(label: 'Pazaryeri/Site', value: item.marketplaceName),
             _DetailRow(label: 'Satıcı adı', value: item.sellerName),
+            _DetailRow(label: 'Hedef fiyat', value: item.formattedTargetPrice),
             _DetailRow(label: 'Son fiyat', value: item.formattedLastPrice),
             _DetailRow(
               label: 'Önceki fiyat',

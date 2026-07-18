@@ -238,10 +238,19 @@ void main() {
     expect(find.text('Trendyol'), findsOneWidget);
     expect(find.text('Satıcı adı'), findsOneWidget);
     expect(find.text('TeknolojiPlus'), findsOneWidget);
+    expect(find.text('Hedef fiyat'), findsOneWidget);
+    expect(find.text('3000 TL'), findsOneWidget);
     expect(find.text('Son fiyat'), findsOneWidget);
     expect(find.text('3299 TL'), findsOneWidget);
     expect(find.text('Önceki fiyat'), findsOneWidget);
     expect(find.text('3499 TL'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Son kontrol zamanı'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('Son kontrol zamanı'), findsOneWidget);
     expect(find.text('17.07.2026 14:30'), findsOneWidget);
 
@@ -318,7 +327,9 @@ void main() {
     expect(find.text('PlayStation 5 Slim'), findsOneWidget);
     expect(find.text('Pazaryeri: Amazon'), findsOneWidget);
     expect(find.text('Satıcı: Bilinmeyen satıcı'), findsOneWidget);
-    expect(find.text('19999 TL'), findsNWidgets(2));
+    expect(find.text('Hedef: 19999 TL'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
+    expect(find.text('19999 TL'), findsNothing);
     expect(find.text('https://example.com/ps5-slim'), findsNothing);
     expect(find.widgetWithText(TextButton, 'Detay'), findsWidgets);
 
@@ -329,6 +340,12 @@ void main() {
     expect(find.text('https://example.com/ps5-slim'), findsOneWidget);
     expect(find.text('Kontrol saatleri'), findsOneWidget);
     expect(find.text('09:00, 14:00, 20:00'), findsOneWidget);
+    expect(find.text('Hedef fiyat'), findsOneWidget);
+    expect(find.text('19999 TL'), findsOneWidget);
+    expect(find.text('Son fiyat'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
+    expect(find.text('Önceki fiyat'), findsOneWidget);
+    expect(find.text('Veri yok'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('Alert Geçmişi'),

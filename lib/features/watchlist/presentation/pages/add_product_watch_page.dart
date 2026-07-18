@@ -37,7 +37,10 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
       return;
     }
 
-    final currentPrice = int.tryParse(_targetPriceController.text.trim()) ?? 0;
+    final targetPriceText = _targetPriceController.text.trim();
+    final targetPrice = targetPriceText.isEmpty
+        ? null
+        : int.parse(targetPriceText);
     final sellerName = _sellerNameController.text.trim().isEmpty
         ? 'Bilinmeyen satıcı'
         : _sellerNameController.text.trim();
@@ -49,8 +52,9 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
       alerts: const [],
       marketplaceName: _marketplaceNameController.text.trim(),
       sellerName: sellerName,
-      lastPrice: currentPrice,
-      previousPrice: currentPrice,
+      lastPrice: 0,
+      previousPrice: 0,
+      targetPrice: targetPrice,
       lastCheckedAt: DateTime.now(),
       priceChanged: false,
       stockTrackingEnabled: _isStockTrackingEnabled,
@@ -63,6 +67,18 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
   String? _requiredFieldValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Bu alan boş olamaz';
+    }
+
+    return null;
+  }
+
+  String? _targetPriceValidator(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return null;
+
+    final price = int.tryParse(text);
+    if (price == null || price <= 0) {
+      return "Hedef fiyat 0'dan büyük olmalı.";
     }
 
     return null;
@@ -106,6 +122,7 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
                 controller: _targetPriceController,
                 labelText: 'Hedef fiyat',
                 keyboardType: TextInputType.number,
+                validator: _targetPriceValidator,
               ),
               const SizedBox(height: 8),
               SwitchListTile(

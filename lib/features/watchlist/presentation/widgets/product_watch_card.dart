@@ -83,6 +83,16 @@ class ProductWatchCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    if (item.targetPrice != null) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Hedef: ${item.targetPrice} TL',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

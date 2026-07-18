@@ -43,6 +43,7 @@ void main() {
       sellerName: 'Satıcı',
       lastPrice: 1250,
       previousPrice: 1300,
+      targetPrice: 1200,
       lastCheckedAt: createdAt,
       priceChanged: true,
       stockTrackingEnabled: false,
@@ -59,7 +60,19 @@ void main() {
     expect(restored.alerts.first.createdAt, createdAt);
     expect(restored.lastCheckedAt, createdAt);
     expect(restored.lastPrice, 1250);
+    expect(restored.targetPrice, 1200);
     expect(restored.stockTrackingEnabled, isFalse);
+  });
+
+  test('ProductWatchItem uses null target price for legacy JSON', () {
+    final restored = ProductWatchItem.fromJson({
+      'productName': 'Legacy product',
+      'productUrl': 'https://example.com/product',
+      'lastPrice': 1250,
+      'previousPrice': 1300,
+    });
+
+    expect(restored.targetPrice, isNull);
   });
 
   test('SellerProductItem reads an integer JSON price as double', () {

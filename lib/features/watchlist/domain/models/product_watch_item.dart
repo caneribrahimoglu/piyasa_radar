@@ -11,6 +11,7 @@ class ProductWatchItem {
     required this.sellerName,
     required this.lastPrice,
     required this.previousPrice,
+    required this.targetPrice,
     required this.lastCheckedAt,
     required this.priceChanged,
     required this.stockTrackingEnabled,
@@ -26,6 +27,7 @@ class ProductWatchItem {
   final String sellerName;
   final int lastPrice;
   final int previousPrice;
+  final int? targetPrice;
   final DateTime lastCheckedAt;
   final bool priceChanged;
   final bool stockTrackingEnabled;
@@ -41,6 +43,7 @@ class ProductWatchItem {
     'sellerName': sellerName,
     'lastPrice': lastPrice,
     'previousPrice': previousPrice,
+    'targetPrice': targetPrice,
     'lastCheckedAt': lastCheckedAt.toIso8601String(),
     'priceChanged': priceChanged,
     'stockTrackingEnabled': stockTrackingEnabled,
@@ -77,6 +80,7 @@ class ProductWatchItem {
       sellerName: json['sellerName'] as String? ?? '',
       lastPrice: (json['lastPrice'] as num?)?.toInt() ?? 0,
       previousPrice: (json['previousPrice'] as num?)?.toInt() ?? 0,
+      targetPrice: (json['targetPrice'] as num?)?.toInt(),
       lastCheckedAt:
           DateTime.tryParse(json['lastCheckedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
@@ -90,9 +94,14 @@ class ProductWatchItem {
 
   bool get priceDecreased => lastPrice < previousPrice;
 
-  String get formattedLastPrice => '$lastPrice TL';
+  String get formattedLastPrice =>
+      lastPrice == 0 ? 'Henüz kontrol edilmedi' : '$lastPrice TL';
 
-  String get formattedPreviousPrice => '$previousPrice TL';
+  String get formattedPreviousPrice =>
+      previousPrice == 0 ? 'Veri yok' : '$previousPrice TL';
+
+  String get formattedTargetPrice =>
+      targetPrice == null ? 'Belirlenmedi' : '$targetPrice TL';
 
   String get formattedLastCheckedAt {
     final day = _twoDigits(lastCheckedAt.day);
