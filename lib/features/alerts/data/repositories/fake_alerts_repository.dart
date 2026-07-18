@@ -27,6 +27,7 @@ class FakeAlertsRepository {
           AlertSummaryItem(
             id: 'product-$productIndex-$alertIndex',
             sourceType: 'product',
+            sourceId: product.id,
             sourceName: product.productName,
             title: alert.title,
             message: alert.message,
@@ -50,6 +51,7 @@ class FakeAlertsRepository {
           AlertSummaryItem(
             id: 'seller-$sellerIndex-$alertIndex',
             sourceType: 'seller',
+            sourceId: seller.id,
             sourceName: seller.sellerName,
             title: alert.title,
             message: alert.message,

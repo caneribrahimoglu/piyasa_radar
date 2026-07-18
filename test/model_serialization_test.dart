@@ -27,6 +27,7 @@ void main() {
 
   test('ProductWatchItem preserves nested alerts and check times', () {
     final original = ProductWatchItem(
+      id: 'product_test',
       productName: 'Ürün',
       productUrl: 'https://example.com/product',
       checkTimes: const ['09:00', '18:00'],
@@ -50,6 +51,7 @@ void main() {
     final restored = ProductWatchItem.fromJson(original.toJson());
 
     expect(restored.productName, original.productName);
+    expect(restored.id, original.id);
     expect(restored.checkTimes, original.checkTimes);
     expect(restored.alerts, hasLength(1));
     expect(restored.alerts.first.title, 'Stok geldi');
@@ -93,6 +95,7 @@ void main() {
 
   test('SellerWatchItem preserves nested products and alerts', () {
     final original = SellerWatchItem(
+      id: 'seller_test',
       sellerName: 'Satıcı',
       marketplaceName: 'Pazar',
       sellerUrl: 'https://example.com/seller',
@@ -121,6 +124,7 @@ void main() {
     final restored = SellerWatchItem.fromJson(original.toJson());
 
     expect(restored.sellerName, original.sellerName);
+    expect(restored.id, original.id);
     expect(restored.lastCheckedAt, createdAt);
     expect(restored.products, hasLength(1));
     expect(restored.products.first.price, 99.5);
@@ -134,6 +138,7 @@ void main() {
     'AlertSummaryItem supports round trip and safe source type fallback',
     () {
       final original = AlertSummaryItem(
+        sourceId: 'seller_test',
         id: 'alert-1',
         sourceType: 'seller',
         sourceName: 'Satıcı',
@@ -151,6 +156,7 @@ void main() {
 
       expect(restored.id, original.id);
       expect(restored.sourceType, 'seller');
+      expect(restored.sourceId, 'seller_test');
       expect(restored.createdAt, createdAt);
       expect(restored.isRead, isTrue);
       expect(unknownSource.sourceType, 'product');
@@ -168,5 +174,24 @@ void main() {
     expect(seller.alerts, isEmpty);
     expect(alert.sourceType, 'product');
     expect(alert.isRead, isFalse);
+  });
+
+  test('legacy JSON without ids gets stable fallback ids', () {
+    final productJson = {
+      'productName': 'Eski Ürün',
+      'productUrl': 'https://example.com/legacy-product',
+    };
+    final sellerJson = {
+      'sellerName': 'Eski Satıcı',
+      'sellerUrl': 'https://example.com/legacy-seller',
+    };
+
+    final productId = ProductWatchItem.fromJson(productJson).id;
+    final sellerId = SellerWatchItem.fromJson(sellerJson).id;
+
+    expect(productId, startsWith('product_legacy_'));
+    expect(sellerId, startsWith('seller_legacy_'));
+    expect(ProductWatchItem.fromJson(productJson).id, productId);
+    expect(SellerWatchItem.fromJson(sellerJson).id, sellerId);
   });
 }

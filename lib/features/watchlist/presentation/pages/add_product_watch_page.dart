@@ -42,6 +42,7 @@ class _AddProductWatchPageState extends State<AddProductWatchPage> {
         ? 'Bilinmeyen satıcı'
         : _sellerNameController.text.trim();
     final newItem = ProductWatchItem(
+      id: 'product_${DateTime.now().microsecondsSinceEpoch}',
       productName: _productNameController.text.trim(),
       productUrl: _productLinkController.text.trim(),
       checkTimes: FakeWatchlistRepository.defaultCheckTimes,

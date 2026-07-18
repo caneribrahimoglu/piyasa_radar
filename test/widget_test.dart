@@ -360,4 +360,43 @@ void main() {
     expect(find.text('Bu alan boş olamaz'), findsNWidgets(3));
     expect(find.text('Piyasa Radar'), findsNothing);
   });
+
+  testWidgets('cancels and confirms removing a tracked product', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ürün Takibi'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Logitech MX Master 3S'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Takipten çıkar'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Bu ürünü takipten çıkarmak istediğinize emin misiniz?'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Vazgeç'));
+    await tester.pumpAndSettle();
+    expect(find.text('Logitech MX Master 3S'), findsNWidgets(2));
+
+    await tester.tap(find.byTooltip('Takipten çıkar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Takipten Çıkar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ürün takipten çıkarıldı.'), findsOneWidget);
+    expect(find.text('Logitech MX Master 3S'), findsNothing);
+
+    await tester.tap(find.text('Özet'));
+    await tester.pumpAndSettle();
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('6'), findsOneWidget);
+  });
 }

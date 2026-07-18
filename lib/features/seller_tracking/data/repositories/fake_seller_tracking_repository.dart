@@ -8,6 +8,7 @@ class FakeSellerTrackingRepository {
   List<SellerWatchItem> getSellerWatchItems() {
     return [
       SellerWatchItem(
+        id: 'seller_teknolojiplus',
         sellerName: 'TeknolojiPlus',
         marketplaceName: 'Trendyol',
         sellerUrl: 'https://www.trendyol.com/magaza/teknolojiplus',
@@ -47,6 +48,7 @@ class FakeSellerTrackingRepository {
         ],
       ),
       SellerWatchItem(
+        id: 'seller_depomarket',
         sellerName: 'DepoMarket',
         marketplaceName: 'Hepsiburada',
         sellerUrl: 'https://www.hepsiburada.com/magaza/depomarket',
@@ -79,6 +81,7 @@ class FakeSellerTrackingRepository {
         ],
       ),
       SellerWatchItem(
+        id: 'seller_cepdukkani',
         sellerName: 'CepDükkanı',
         marketplaceName: 'N11',
         sellerUrl: 'https://www.n11.com/magaza/cepdukkani',

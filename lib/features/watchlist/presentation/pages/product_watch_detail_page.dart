@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piyasa_radar/app/app_state.dart';
 import 'package:piyasa_radar/core/theme/app_radius.dart';
 import 'package:piyasa_radar/core/theme/app_spacing.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
@@ -6,14 +7,54 @@ import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item
 import 'package:piyasa_radar/shared/widgets/page_container.dart';
 
 class ProductWatchDetailPage extends StatelessWidget {
-  const ProductWatchDetailPage({super.key, required this.item});
+  const ProductWatchDetailPage({
+    required this.item,
+    required this.appState,
+    super.key,
+  });
 
   final ProductWatchItem item;
+  final AppState appState;
+
+  Future<void> _confirmRemoval(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Takipten çıkar'),
+        content: const Text(
+          'Bu ürünü takipten çıkarmak istediğinize emin misiniz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Takipten Çıkar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+    await appState.removeWatchItem(item.id);
+    if (context.mounted) Navigator.of(context).pop(true);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(item.productName)),
+      appBar: AppBar(
+        title: Text(item.productName),
+        actions: [
+          IconButton(
+            tooltip: 'Takipten çıkar',
+            onPressed: () => _confirmRemoval(context),
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
+      ),
       body: PageContainer(
         maxWidth: 800,
         child: ListView(

@@ -46,6 +46,7 @@ void main() {
     addTearDown(appState.dispose);
     await appState.initialize();
     final seller = SellerWatchItem(
+      id: 'seller_new',
       sellerName: 'Yeni Satıcı',
       marketplaceName: 'Pazar',
       sellerUrl: 'https://example.com',
@@ -126,6 +127,58 @@ void main() {
     expect(
       () => appState.watchItems.add(appState.watchItems.first),
       throwsUnsupportedError,
+    );
+  });
+
+  test('removing a product persists lists and removes its alerts', () async {
+    final storage = MemoryAppStorage();
+    final appState = AppState(storage: storage);
+    addTearDown(appState.dispose);
+    await appState.initialize();
+    final product = appState.watchItems.first;
+    final relatedAlertCount = appState.alerts
+        .where((alert) => alert.sourceId == product.id)
+        .length;
+
+    await appState.removeWatchItem(product.id);
+    await appState.removeWatchItem('missing_product');
+
+    expect(appState.watchItems.any((item) => item.id == product.id), isFalse);
+    expect(appState.alerts, hasLength(7 - relatedAlertCount));
+    expect(jsonDecode(storage.watchItems!) as List, hasLength(2));
+    expect(
+      jsonDecode(storage.alerts!) as List,
+      hasLength(7 - relatedAlertCount),
+    );
+
+    final restoredState = AppState(storage: storage);
+    addTearDown(restoredState.dispose);
+    await restoredState.initialize();
+    expect(
+      restoredState.watchItems.any((item) => item.id == product.id),
+      isFalse,
+    );
+  });
+
+  test('removing a seller persists lists and removes its alerts', () async {
+    final storage = MemoryAppStorage();
+    final appState = AppState(storage: storage);
+    addTearDown(appState.dispose);
+    await appState.initialize();
+    final seller = appState.sellerItems.first;
+    final relatedAlertCount = appState.alerts
+        .where((alert) => alert.sourceId == seller.id)
+        .length;
+
+    await appState.removeSellerItem(seller.id);
+    await appState.removeSellerItem('missing_seller');
+
+    expect(appState.sellerItems.any((item) => item.id == seller.id), isFalse);
+    expect(appState.alerts, hasLength(7 - relatedAlertCount));
+    expect(jsonDecode(storage.sellerItems!) as List, hasLength(2));
+    expect(
+      jsonDecode(storage.alerts!) as List,
+      hasLength(7 - relatedAlertCount),
     );
   });
 }

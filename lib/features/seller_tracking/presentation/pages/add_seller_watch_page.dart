@@ -39,6 +39,7 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
     }
 
     final newSeller = SellerWatchItem(
+      id: 'seller_${DateTime.now().microsecondsSinceEpoch}',
       sellerName: _sellerNameController.text.trim(),
       sellerUrl: _sellerLinkController.text.trim(),
       marketplaceName: _marketplaceNameController.text.trim(),

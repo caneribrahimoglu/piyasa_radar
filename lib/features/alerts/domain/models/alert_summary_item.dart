@@ -2,6 +2,7 @@ class AlertSummaryItem {
   const AlertSummaryItem({
     required this.id,
     required this.sourceType,
+    required this.sourceId,
     required this.sourceName,
     required this.title,
     required this.message,
@@ -11,6 +12,7 @@ class AlertSummaryItem {
 
   final String id;
   final String sourceType;
+  final String sourceId;
   final String sourceName;
   final String title;
   final String message;
@@ -20,6 +22,7 @@ class AlertSummaryItem {
   Map<String, dynamic> toJson() => {
     'id': id,
     'sourceType': sourceType,
+    'sourceId': sourceId,
     'sourceName': sourceName,
     'title': title,
     'message': message,
@@ -32,6 +35,7 @@ class AlertSummaryItem {
     return AlertSummaryItem(
       id: json['id'] as String? ?? '',
       sourceType: sourceType == 'seller' ? 'seller' : 'product',
+      sourceId: json['sourceId'] as String? ?? '',
       sourceName: json['sourceName'] as String? ?? '',
       title: json['title'] as String? ?? '',
       message: json['message'] as String? ?? '',
@@ -45,6 +49,7 @@ class AlertSummaryItem {
   AlertSummaryItem copyWith({
     String? id,
     String? sourceType,
+    String? sourceId,
     String? sourceName,
     String? title,
     String? message,
@@ -54,6 +59,7 @@ class AlertSummaryItem {
     return AlertSummaryItem(
       id: id ?? this.id,
       sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
       sourceName: sourceName ?? this.sourceName,
       title: title ?? this.title,
       message: message ?? this.message,

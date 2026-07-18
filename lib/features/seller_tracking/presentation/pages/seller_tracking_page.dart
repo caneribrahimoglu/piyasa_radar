@@ -30,12 +30,18 @@ class _SellerTrackingPageState extends State<SellerTrackingPage> {
     widget.appState.addSellerItem(newSeller);
   }
 
-  void _openSellerDetailPage(SellerWatchItem item) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => SellerTrackingDetailPage(item: item),
+  Future<void> _openSellerDetailPage(SellerWatchItem item) async {
+    final removed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) =>
+            SellerTrackingDetailPage(item: item, appState: widget.appState),
       ),
     );
+
+    if (!mounted || removed != true) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Satıcı takipten çıkarıldı.')));
   }
 
   @override

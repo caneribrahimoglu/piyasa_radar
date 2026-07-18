@@ -148,6 +148,38 @@ class AppState extends ChangeNotifier {
     await _persistSellerItems();
   }
 
+  Future<void> removeWatchItem(String id) async {
+    final index = _watchItems.indexWhere((item) => item.id == id);
+    if (index == -1) return;
+
+    final removedItem = _watchItems.removeAt(index);
+    _alerts.removeWhere(
+      (alert) =>
+          alert.sourceType == 'product' &&
+          (alert.sourceId == id ||
+              (alert.sourceId.isEmpty &&
+                  alert.sourceName == removedItem.productName)),
+    );
+    notifyListeners();
+    await Future.wait([_persistWatchItems(), _persistAlerts()]);
+  }
+
+  Future<void> removeSellerItem(String id) async {
+    final index = _sellerItems.indexWhere((item) => item.id == id);
+    if (index == -1) return;
+
+    final removedItem = _sellerItems.removeAt(index);
+    _alerts.removeWhere(
+      (alert) =>
+          alert.sourceType == 'seller' &&
+          (alert.sourceId == id ||
+              (alert.sourceId.isEmpty &&
+                  alert.sourceName == removedItem.sellerName)),
+    );
+    notifyListeners();
+    await Future.wait([_persistSellerItems(), _persistAlerts()]);
+  }
+
   Future<void> markAlertAsRead(String alertId) async {
     final index = _alerts.indexWhere((alert) => alert.id == alertId);
     if (index == -1 || _alerts[index].isRead) return;

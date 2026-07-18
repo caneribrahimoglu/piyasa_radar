@@ -40,12 +40,18 @@ class _WatchlistHomePageState extends State<WatchlistHomePage> {
     ).showSnackBar(const SnackBar(content: Text('Ürün takibe eklendi.')));
   }
 
-  void _openProductWatchDetailPage(ProductWatchItem item) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => ProductWatchDetailPage(item: item),
+  Future<void> _openProductWatchDetailPage(ProductWatchItem item) async {
+    final removed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (context) =>
+            ProductWatchDetailPage(item: item, appState: widget.appState),
       ),
     );
+
+    if (!mounted || removed != true) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Ürün takipten çıkarıldı.')));
   }
 
   @override

@@ -9,6 +9,7 @@ class FakeWatchlistRepository {
   List<ProductWatchItem> getWatchItems() {
     return [
       ProductWatchItem(
+        id: 'product_logitech_mx_master_3s',
         productName: 'Logitech MX Master 3S',
         productUrl: 'https://www.trendyol.com/logitech-mx-master-3s',
         checkTimes: defaultCheckTimes,
@@ -30,6 +31,7 @@ class FakeWatchlistRepository {
         inStock: true,
       ),
       ProductWatchItem(
+        id: 'product_samsung_980_pro_1tb',
         productName: 'Samsung 980 Pro 1TB',
         productUrl: 'https://www.hepsiburada.com/samsung-980-pro-1tb',
         checkTimes: defaultCheckTimes,
@@ -50,6 +52,7 @@ class FakeWatchlistRepository {
         inStock: false,
       ),
       ProductWatchItem(
+        id: 'product_iphone_15_128gb',
         productName: 'iPhone 15 128GB',
         productUrl: 'https://www.n11.com/iphone-15-128gb',
         checkTimes: defaultCheckTimes,

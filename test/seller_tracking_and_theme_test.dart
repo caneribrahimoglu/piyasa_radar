@@ -77,4 +77,33 @@ void main() {
     expect(find.text('Toplam ürün: 0'), findsOneWidget);
     expect(find.text('Yeni ürün: 0'), findsOneWidget);
   });
+
+  testWidgets('removes a seller after confirmation and closes detail', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const PiyasaRadarApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Satıcı Takibi'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TeknolojiPlus'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Takipten çıkar'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Bu satıcıyı takipten çıkarmak istediğinize emin misiniz?'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Takipten Çıkar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Satıcı takipten çıkarıldı.'), findsOneWidget);
+    expect(find.text('TeknolojiPlus'), findsNothing);
+    expect(find.text('Satıcı Detayı'), findsNothing);
+  });
 }

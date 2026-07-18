@@ -3,6 +3,7 @@ import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_produ
 
 class SellerWatchItem {
   const SellerWatchItem({
+    required this.id,
     required this.sellerName,
     required this.marketplaceName,
     required this.sellerUrl,
@@ -13,6 +14,7 @@ class SellerWatchItem {
     required this.alerts,
   });
 
+  final String id;
   final String sellerName;
   final String marketplaceName;
   final String sellerUrl;
@@ -23,6 +25,7 @@ class SellerWatchItem {
   final List<SellerAlertEvent> alerts;
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'sellerName': sellerName,
     'marketplaceName': marketplaceName,
     'sellerUrl': sellerUrl,
@@ -38,6 +41,12 @@ class SellerWatchItem {
     final alertsJson = json['alerts'];
 
     return SellerWatchItem(
+      id:
+          json['id'] as String? ??
+          _legacyId(
+            json['sellerName'] as String? ?? '',
+            json['sellerUrl'] as String? ?? '',
+          ),
       sellerName: json['sellerName'] as String? ?? '',
       marketplaceName: json['marketplaceName'] as String? ?? '',
       sellerUrl: json['sellerUrl'] as String? ?? '',
@@ -80,4 +89,12 @@ class SellerWatchItem {
   }
 
   static String _twoDigits(int value) => value.toString().padLeft(2, '0');
+
+  static String _legacyId(String name, String url) {
+    var hash = 2166136261;
+    for (final codeUnit in '$name|$url'.codeUnits) {
+      hash = ((hash ^ codeUnit) * 16777619) & 0xFFFFFFFF;
+    }
+    return 'seller_legacy_${hash.toRadixString(16)}';
+  }
 }

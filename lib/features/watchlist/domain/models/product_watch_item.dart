@@ -2,6 +2,7 @@ import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 
 class ProductWatchItem {
   const ProductWatchItem({
+    required this.id,
     required this.productName,
     required this.productUrl,
     required this.checkTimes,
@@ -15,6 +16,7 @@ class ProductWatchItem {
     required this.inStock,
   });
 
+  final String id;
   final String productName;
   final String productUrl;
   final List<String> checkTimes;
@@ -28,6 +30,7 @@ class ProductWatchItem {
   final bool inStock;
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'productName': productName,
     'productUrl': productUrl,
     'checkTimes': checkTimes,
@@ -46,6 +49,12 @@ class ProductWatchItem {
     final alertsJson = json['alerts'];
 
     return ProductWatchItem(
+      id:
+          json['id'] as String? ??
+          _legacyId(
+            json['productName'] as String? ?? '',
+            json['productUrl'] as String? ?? '',
+          ),
       productName: json['productName'] as String? ?? '',
       productUrl: json['productUrl'] as String? ?? '',
       checkTimes: checkTimesJson is List
@@ -95,4 +104,12 @@ class ProductWatchItem {
   String get stockLabel => inStock ? 'Stokta' : 'Stokta yok';
 
   static String _twoDigits(int value) => value.toString().padLeft(2, '0');
+
+  static String _legacyId(String name, String url) {
+    var hash = 2166136261;
+    for (final codeUnit in '$name|$url'.codeUnits) {
+      hash = ((hash ^ codeUnit) * 16777619) & 0xFFFFFFFF;
+    }
+    return 'product_legacy_${hash.toRadixString(16)}';
+  }
 }
