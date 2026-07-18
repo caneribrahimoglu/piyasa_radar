@@ -191,6 +191,146 @@ void main() {
   });
 
   test(
+    'deleted product is not restored when an in-flight check finishes',
+    () async {
+      final completer = Completer<ProductCheckResult>();
+      final service = _CompleterProductTrackingService(completer);
+      final product = _product(lastPrice: 1200);
+      final storage = _storageWith(product);
+      final appState = AppState(
+        storage: storage,
+        productTrackingService: service,
+      );
+      addTearDown(appState.dispose);
+      await appState.initialize();
+
+      final pendingCheck = appState.checkWatchItemNow(product.id);
+      await appState.removeWatchItem(product.id);
+      completer.complete(_result(price: 1100, inStock: true));
+
+      final result = await pendingCheck;
+
+      expect(result, isNull);
+      expect(appState.watchItems, isEmpty);
+      expect(appState.alerts, isEmpty);
+      expect(jsonDecode(storage.watchItems!) as List<dynamic>, isEmpty);
+    },
+  );
+
+  test(
+    'removing an earlier product while checking updates the right item',
+    () async {
+      final firstProduct = _product(id: 'product_first', lastPrice: 900);
+      final checkedProduct = _product(id: 'product_checked', lastPrice: 1200);
+      final completer = Completer<ProductCheckResult>();
+      final storage = _storageWithMany([firstProduct, checkedProduct]);
+      final appState = AppState(
+        storage: storage,
+        productTrackingService: _CompleterProductTrackingService(completer),
+      );
+      addTearDown(appState.dispose);
+      await appState.initialize();
+
+      final pendingCheck = appState.checkWatchItemNow(checkedProduct.id);
+      await appState.removeWatchItem(firstProduct.id);
+      completer.complete(_result(price: 1300, inStock: true));
+
+      final result = await pendingCheck;
+
+      expect(result!.id, checkedProduct.id);
+      expect(appState.watchItems, hasLength(1));
+      expect(appState.watchItems.single.id, checkedProduct.id);
+      expect(appState.watchItems.single.lastPrice, 1300);
+    },
+  );
+
+  test(
+    'in-flight edits keep current fields and use current source name and target',
+    () async {
+      final product = _product(
+        productName: 'Eski Ürün',
+        lastPrice: 1200,
+        targetPrice: 900,
+      );
+      final completer = Completer<ProductCheckResult>();
+      final appState = await _stateWith(
+        product,
+        service: _CompleterProductTrackingService(completer),
+      );
+      addTearDown(appState.dispose);
+
+      final pendingCheck = appState.checkWatchItemNow(product.id);
+      await appState.updateWatchItem(
+        appState.watchItems.first.copyWith(
+          productName: 'Güncel Ürün',
+          productUrl: 'https://example.com/current',
+          marketplaceName: 'Güncel Pazar',
+          sellerName: 'Güncel Satıcı',
+          targetPrice: 1100,
+          stockTrackingEnabled: false,
+          checkTimes: const ['18:00', '08:00'],
+        ),
+      );
+      completer.complete(_result(price: 1050, inStock: false));
+
+      final result = await pendingCheck;
+
+      expect(result!.productName, 'Güncel Ürün');
+      expect(result.productUrl, 'https://example.com/current');
+      expect(result.marketplaceName, 'Güncel Pazar');
+      expect(result.sellerName, 'Güncel Satıcı');
+      expect(result.targetPrice, 1100);
+      expect(result.stockTrackingEnabled, isFalse);
+      expect(result.checkTimes, const ['08:00', '18:00']);
+      expect(result.previousPrice, 1200);
+      expect(result.lastPrice, 1050);
+      expect(
+        appState.alerts
+            .where((alert) => alert.title == 'Hedef fiyata ulaştı')
+            .length,
+        1,
+      );
+      expect(
+        appState.alerts.every((alert) => alert.sourceName == 'Güncel Ürün'),
+        isTrue,
+      );
+      expect(
+        appState.alerts.any((alert) => alert.title == 'Stok bitti'),
+        isFalse,
+      );
+    },
+  );
+
+  test('failed in-flight check preserves current editable fields', () async {
+    final product = _product(lastPrice: 1200, targetPrice: 900);
+    final completer = Completer<ProductCheckResult>();
+    final appState = await _stateWith(
+      product,
+      service: _CompleterProductTrackingService(completer),
+    );
+    addTearDown(appState.dispose);
+
+    final pendingCheck = appState.checkWatchItemNow(product.id);
+    await appState.updateWatchItem(
+      appState.watchItems.first.copyWith(
+        productName: 'Hata Sırasında Güncel',
+        targetPrice: 1100,
+        checkTimes: const ['07:00'],
+      ),
+    );
+    completer.completeError(Exception('Geçici servis hatası.'));
+
+    final result = await pendingCheck;
+
+    expect(result!.checkStatus, TrackingCheckStatus.failed);
+    expect(result.productName, 'Hata Sırasında Güncel');
+    expect(result.targetPrice, 1100);
+    expect(result.checkTimes, const ['07:00']);
+    expect(result.lastPrice, 1200);
+    expect(result.lastCheckError, 'Geçici servis hatası.');
+  });
+
+  test(
     'product and alert persistence are updated after alert creation',
     () async {
       final product = _product(lastPrice: 1500);
@@ -231,12 +371,36 @@ void main() {
     final checkingButton = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, 'Kontrol ediliyor'),
     );
+    final editButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.edit_outlined),
+    );
+    final deleteButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.delete_outline),
+    );
     expect(checkingButton.onPressed, isNull);
+    expect(editButton.onPressed, isNull);
+    expect(deleteButton.onPressed, isNull);
 
     completer.complete(_result(price: 1250, inStock: true));
     await tester.pumpAndSettle();
 
     expect(find.text('Ürün kontrol edildi.'), findsOneWidget);
+    expect(
+      tester
+          .widget<IconButton>(
+            find.widgetWithIcon(IconButton, Icons.edit_outlined),
+          )
+          .onPressed,
+      isNotNull,
+    );
+    expect(
+      tester
+          .widget<IconButton>(
+            find.widgetWithIcon(IconButton, Icons.delete_outline),
+          )
+          .onPressed,
+      isNotNull,
+    );
     await tester.scrollUntilVisible(
       find.text('Kontrol başarılı'),
       300,
@@ -323,8 +487,14 @@ ProductCheckResult _result({
 }
 
 MemoryAppStorage _storageWith(ProductWatchItem product) {
+  return _storageWithMany([product]);
+}
+
+MemoryAppStorage _storageWithMany(List<ProductWatchItem> products) {
   return MemoryAppStorage()
-    ..watchItems = jsonEncode([product.toJson()])
+    ..watchItems = jsonEncode(
+      products.map((product) => product.toJson()).toList(),
+    )
     ..sellerItems = '[]'
     ..alerts = '[]';
 }

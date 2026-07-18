@@ -110,18 +110,20 @@ class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isChecking = _item.checkStatus == TrackingCheckStatus.checking;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_item.productName),
         actions: [
           IconButton(
             tooltip: 'Düzenle',
-            onPressed: () => _openEditPage(context),
+            onPressed: isChecking ? null : () => _openEditPage(context),
             icon: const Icon(Icons.edit_outlined),
           ),
           IconButton(
             tooltip: 'Takipten çıkar',
-            onPressed: () => _confirmRemoval(context),
+            onPressed: isChecking ? null : () => _confirmRemoval(context),
             icon: const Icon(Icons.delete_outline),
           ),
         ],
@@ -138,18 +140,12 @@ class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: _item.checkStatus == TrackingCheckStatus.checking
-                  ? 'Kontrol ediliyor'
-                  : 'Şimdi kontrol et',
-              icon: _item.checkStatus == TrackingCheckStatus.checking
-                  ? Icons.hourglass_top
-                  : Icons.refresh,
+              label: isChecking ? 'Kontrol ediliyor' : 'Şimdi kontrol et',
+              icon: isChecking ? Icons.hourglass_top : Icons.refresh,
               fullWidth: true,
-              onPressed: _item.checkStatus == TrackingCheckStatus.checking
-                  ? null
-                  : () => _checkNow(context),
+              onPressed: isChecking ? null : () => _checkNow(context),
             ),
-            if (_item.checkStatus == TrackingCheckStatus.checking) ...[
+            if (isChecking) ...[
               const SizedBox(height: AppSpacing.sm),
               const LinearProgressIndicator(),
             ],

@@ -180,28 +180,43 @@ class AppState extends ChangeNotifier {
   }
 
   Future<ProductWatchItem?> checkWatchItemNow(String id) async {
-    final index = _watchItems.indexWhere((item) => item.id == id);
-    if (index == -1) return null;
+    final initialIndex = _watchItems.indexWhere((item) => item.id == id);
+    if (initialIndex == -1) return null;
 
-    final item = _watchItems[index];
-    if (item.checkStatus == TrackingCheckStatus.checking) return item;
+    final trackingSnapshot = _watchItems[initialIndex];
+    final productId = trackingSnapshot.id;
+    if (trackingSnapshot.checkStatus == TrackingCheckStatus.checking) {
+      return trackingSnapshot;
+    }
 
-    _watchItems[index] = item.copyWith(
+    _watchItems[initialIndex] = trackingSnapshot.copyWith(
       checkStatus: TrackingCheckStatus.checking,
       lastCheckError: null,
     );
     notifyListeners();
 
     try {
-      final result = await productTrackingService.checkProduct(item);
-      final updatedItem = _buildSuccessfulProductCheck(item, result);
+      final result = await productTrackingService.checkProduct(
+        trackingSnapshot,
+      );
+      final currentIndex = _watchItems.indexWhere(
+        (item) => item.id == productId,
+      );
+      if (currentIndex == -1) return null;
+
+      final currentItem = _watchItems[currentIndex];
+      final updatedItem = _buildSuccessfulProductCheck(
+        currentItem: currentItem,
+        trackingSnapshot: trackingSnapshot,
+        result: result,
+      );
       final newAlerts = _buildProductCheckAlerts(
-        previousItem: item,
+        trackingSnapshot: trackingSnapshot,
         updatedItem: updatedItem,
         checkedAt: result.checkedAt,
       );
 
-      _watchItems[index] = updatedItem.copyWith(
+      _watchItems[currentIndex] = updatedItem.copyWith(
         alerts: [...newAlerts.productAlerts, ...updatedItem.alerts],
       );
       if (newAlerts.summaryAlerts.isNotEmpty) {
@@ -215,14 +230,19 @@ class AppState extends ChangeNotifier {
         _persistWatchItems(),
         if (newAlerts.summaryAlerts.isNotEmpty) _persistAlerts(),
       ]);
-      return _watchItems[index];
+      return _watchItems[currentIndex];
     } catch (error) {
-      final failedItem = item.copyWith(
+      final currentIndex = _watchItems.indexWhere(
+        (item) => item.id == productId,
+      );
+      if (currentIndex == -1) return null;
+
+      final failedItem = _watchItems[currentIndex].copyWith(
         checkStatus: TrackingCheckStatus.failed,
         lastCheckedAt: DateTime.now(),
         lastCheckError: _userFriendlyCheckError(error),
       );
-      _watchItems[index] = failedItem;
+      _watchItems[currentIndex] = failedItem;
       notifyListeners();
       await _persistWatchItems();
       return failedItem;
@@ -322,14 +342,17 @@ class AppState extends ChangeNotifier {
     return changed;
   }
 
-  ProductWatchItem _buildSuccessfulProductCheck(
-    ProductWatchItem item,
-    ProductCheckResult result,
-  ) {
-    final priceChanged = item.lastPrice > 0 && item.lastPrice != result.price;
+  ProductWatchItem _buildSuccessfulProductCheck({
+    required ProductWatchItem currentItem,
+    required ProductWatchItem trackingSnapshot,
+    required ProductCheckResult result,
+  }) {
+    final priceChanged =
+        trackingSnapshot.lastPrice > 0 &&
+        trackingSnapshot.lastPrice != result.price;
 
-    return item.copyWith(
-      previousPrice: item.lastPrice,
+    return currentItem.copyWith(
+      previousPrice: trackingSnapshot.lastPrice,
       lastPrice: result.price,
       priceChanged: priceChanged,
       inStock: result.inStock,
@@ -340,11 +363,11 @@ class AppState extends ChangeNotifier {
   }
 
   _ProductCheckAlerts _buildProductCheckAlerts({
-    required ProductWatchItem previousItem,
+    required ProductWatchItem trackingSnapshot,
     required ProductWatchItem updatedItem,
     required DateTime checkedAt,
   }) {
-    if (previousItem.lastPrice == 0) return const _ProductCheckAlerts();
+    if (trackingSnapshot.lastPrice == 0) return const _ProductCheckAlerts();
 
     final productAlerts = <AlertEvent>[];
     final summaryAlerts = <AlertSummaryItem>[];
@@ -380,18 +403,18 @@ class AppState extends ChangeNotifier {
       );
     }
 
-    if (previousItem.lastPrice != updatedItem.lastPrice) {
-      final priceDropped = updatedItem.lastPrice < previousItem.lastPrice;
+    if (trackingSnapshot.lastPrice != updatedItem.lastPrice) {
+      final priceDropped = updatedItem.lastPrice < trackingSnapshot.lastPrice;
       addAlert(
         title: priceDropped ? 'Fiyat düştü' : 'Fiyat yükseldi',
         message:
-            'Fiyat ${previousItem.lastPrice} TL seviyesinden ${updatedItem.lastPrice} TL seviyesine geldi.',
+            'Fiyat ${trackingSnapshot.lastPrice} TL seviyesinden ${updatedItem.lastPrice} TL seviyesine geldi.',
         type: priceDropped ? 'price_down' : 'price_up',
       );
     }
 
-    if (previousItem.stockTrackingEnabled &&
-        previousItem.inStock != updatedItem.inStock) {
+    if (updatedItem.stockTrackingEnabled &&
+        trackingSnapshot.inStock != updatedItem.inStock) {
       addAlert(
         title: updatedItem.inStock ? 'Stok geldi' : 'Stok bitti',
         message: updatedItem.inStock
@@ -401,9 +424,9 @@ class AppState extends ChangeNotifier {
       );
     }
 
-    final targetPrice = previousItem.targetPrice;
+    final targetPrice = updatedItem.targetPrice;
     if (targetPrice != null &&
-        previousItem.lastPrice > targetPrice &&
+        trackingSnapshot.lastPrice > targetPrice &&
         updatedItem.lastPrice <= targetPrice) {
       addAlert(
         title: 'Hedef fiyata ulaştı',
