@@ -61,7 +61,13 @@ void main() {
       'Test Pazarı',
     );
     await tester.tap(find.byType(Switch));
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pumpAndSettle();
 
     expect(find.text('tracking:false,stock:true'), findsOneWidget);

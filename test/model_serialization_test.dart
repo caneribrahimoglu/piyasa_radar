@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piyasa_radar/core/constants/default_check_times.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/alerts/domain/models/alert_summary_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
@@ -9,6 +10,18 @@ import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item
 
 void main() {
   final createdAt = DateTime.utc(2026, 7, 18, 10, 30, 45);
+
+  test('TrackingCheckStatus supports safe JSON conversion', () {
+    expect(
+      trackingCheckStatusFromJson('checking'),
+      TrackingCheckStatus.checking,
+    );
+    expect(trackingCheckStatusToJson(TrackingCheckStatus.failed), 'failed');
+    expect(
+      trackingCheckStatusFromJson('unknown'),
+      TrackingCheckStatus.neverChecked,
+    );
+  });
 
   test('AlertEvent supports a JSON round trip', () {
     final original = AlertEvent(
@@ -45,7 +58,9 @@ void main() {
       lastPrice: 1250,
       previousPrice: 1300,
       targetPrice: 1200,
+      checkStatus: TrackingCheckStatus.success,
       lastCheckedAt: createdAt,
+      lastCheckError: null,
       priceChanged: true,
       stockTrackingEnabled: false,
       inStock: true,
@@ -60,6 +75,8 @@ void main() {
     expect(restored.alerts.first.title, 'Stok geldi');
     expect(restored.alerts.first.createdAt, createdAt);
     expect(restored.lastCheckedAt, createdAt);
+    expect(restored.checkStatus, TrackingCheckStatus.success);
+    expect(restored.lastCheckError, isNull);
     expect(restored.lastPrice, 1250);
     expect(restored.targetPrice, 1200);
     expect(restored.stockTrackingEnabled, isFalse);
@@ -74,6 +91,19 @@ void main() {
     });
 
     expect(restored.targetPrice, isNull);
+    expect(restored.checkStatus, TrackingCheckStatus.neverChecked);
+    expect(restored.lastCheckedAt, isNull);
+  });
+
+  test('legacy ProductWatchItem JSON with date migrates to success', () {
+    final restored = ProductWatchItem.fromJson({
+      'productName': 'Legacy product',
+      'productUrl': 'https://example.com/product',
+      'lastCheckedAt': createdAt.toIso8601String(),
+    });
+
+    expect(restored.checkStatus, TrackingCheckStatus.success);
+    expect(restored.lastCheckedAt, createdAt);
   });
 
   test(
@@ -90,7 +120,9 @@ void main() {
         lastPrice: 1250,
         previousPrice: 1300,
         targetPrice: 1200,
+        checkStatus: TrackingCheckStatus.success,
         lastCheckedAt: createdAt,
+        lastCheckError: 'Old error',
         priceChanged: true,
         stockTrackingEnabled: true,
         inStock: true,
@@ -114,7 +146,9 @@ void main() {
         lastPrice: 1100,
         previousPrice: 1250,
         targetPrice: null,
-        lastCheckedAt: createdAt.add(const Duration(hours: 1)),
+        checkStatus: TrackingCheckStatus.failed,
+        lastCheckedAt: null,
+        lastCheckError: null,
         priceChanged: false,
         stockTrackingEnabled: false,
         inStock: false,
@@ -130,7 +164,9 @@ void main() {
       expect(updated.lastPrice, 1100);
       expect(updated.previousPrice, 1250);
       expect(updated.targetPrice, isNull);
-      expect(updated.lastCheckedAt, createdAt.add(const Duration(hours: 1)));
+      expect(updated.checkStatus, TrackingCheckStatus.failed);
+      expect(updated.lastCheckedAt, isNull);
+      expect(updated.lastCheckError, isNull);
       expect(updated.priceChanged, isFalse);
       expect(updated.stockTrackingEnabled, isFalse);
       expect(updated.inStock, isFalse);
@@ -180,7 +216,9 @@ void main() {
       checkTimes: const ['08:00', '16:00'],
       totalProducts: 10,
       newProductsCount: 1,
+      checkStatus: TrackingCheckStatus.success,
       lastCheckedAt: createdAt,
+      lastCheckError: null,
       products: [
         SellerProductItem(
           productName: 'Yeni ürün',
@@ -205,7 +243,9 @@ void main() {
     expect(restored.sellerName, original.sellerName);
     expect(restored.id, original.id);
     expect(restored.checkTimes, original.checkTimes);
+    expect(restored.checkStatus, TrackingCheckStatus.success);
     expect(restored.lastCheckedAt, createdAt);
+    expect(restored.lastCheckError, isNull);
     expect(restored.products, hasLength(1));
     expect(restored.products.first.price, 99.5);
     expect(restored.products.first.detectedAt, createdAt);
@@ -223,11 +263,12 @@ void main() {
       checkTimes: const ['09:00'],
       totalProducts: 10,
       newProductsCount: 1,
+      checkStatus: TrackingCheckStatus.success,
       lastCheckedAt: createdAt,
+      lastCheckError: 'Old error',
       products: const [],
       alerts: const [],
     );
-    final updatedTime = createdAt.add(const Duration(hours: 2));
     final updated = original.copyWith(
       id: 'seller_updated',
       sellerName: 'Yeni Satıcı',
@@ -236,7 +277,9 @@ void main() {
       checkTimes: const ['18:00', '08:00', '8:00'],
       totalProducts: 20,
       newProductsCount: 3,
-      lastCheckedAt: updatedTime,
+      checkStatus: TrackingCheckStatus.failed,
+      lastCheckedAt: null,
+      lastCheckError: null,
       products: [
         SellerProductItem(
           productName: 'Yeni ürün',
@@ -263,7 +306,9 @@ void main() {
     expect(updated.checkTimes, const ['08:00', '18:00']);
     expect(updated.totalProducts, 20);
     expect(updated.newProductsCount, 3);
-    expect(updated.lastCheckedAt, updatedTime);
+    expect(updated.checkStatus, TrackingCheckStatus.failed);
+    expect(updated.lastCheckedAt, isNull);
+    expect(updated.lastCheckError, isNull);
     expect(updated.products, hasLength(1));
     expect(updated.alerts, hasLength(1));
   });
@@ -275,6 +320,19 @@ void main() {
     });
 
     expect(restored.checkTimes, defaultCheckTimes);
+    expect(restored.checkStatus, TrackingCheckStatus.neverChecked);
+    expect(restored.lastCheckedAt, isNull);
+  });
+
+  test('legacy SellerWatchItem JSON with date migrates to success', () {
+    final restored = SellerWatchItem.fromJson({
+      'sellerName': 'Legacy seller',
+      'sellerUrl': 'https://example.com/seller',
+      'lastCheckedAt': createdAt.toIso8601String(),
+    });
+
+    expect(restored.checkStatus, TrackingCheckStatus.success);
+    expect(restored.lastCheckedAt, createdAt);
   });
 
   test(

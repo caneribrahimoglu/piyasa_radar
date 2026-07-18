@@ -1,4 +1,5 @@
 import 'package:piyasa_radar/core/constants/default_check_times.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 
@@ -26,7 +27,9 @@ class FakeWatchlistRepository {
         lastPrice: 3299,
         previousPrice: 3499,
         targetPrice: 3000,
+        checkStatus: TrackingCheckStatus.success,
         lastCheckedAt: DateTime(2026, 7, 17, 14, 30),
+        lastCheckError: null,
         priceChanged: true,
         stockTrackingEnabled: true,
         inStock: true,
@@ -49,7 +52,9 @@ class FakeWatchlistRepository {
         lastPrice: 2899,
         previousPrice: 2799,
         targetPrice: 2600,
+        checkStatus: TrackingCheckStatus.failed,
         lastCheckedAt: DateTime(2026, 7, 17, 13, 10),
+        lastCheckError: 'Pazaryeri stok bilgisi okunamadı.',
         priceChanged: true,
         stockTrackingEnabled: true,
         inStock: false,
@@ -72,7 +77,9 @@ class FakeWatchlistRepository {
         lastPrice: 48999,
         previousPrice: 48999,
         targetPrice: null,
-        lastCheckedAt: DateTime(2026, 7, 16, 21, 45),
+        checkStatus: TrackingCheckStatus.neverChecked,
+        lastCheckedAt: null,
+        lastCheckError: null,
         priceChanged: false,
         stockTrackingEnabled: false,
         inStock: true,

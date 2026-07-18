@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:piyasa_radar/core/theme/app_colors.dart';
 import 'package:piyasa_radar/core/theme/app_spacing.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
 import 'package:piyasa_radar/shared/widgets/app_card.dart';
 
@@ -24,6 +26,8 @@ class SellerWatchCard extends StatelessWidget {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: AppSpacing.sm),
+          _CheckStatusLabel(status: item.checkStatus),
+          const SizedBox(height: AppSpacing.sm),
           _InfoRow(label: 'Pazaryeri', value: item.marketplaceName),
           _InfoRow(label: 'Toplam ürün', value: item.totalProducts.toString()),
           _InfoRow(label: 'Yeni ürün', value: item.newProductsCount.toString()),
@@ -39,6 +43,46 @@ class SellerWatchCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CheckStatusLabel extends StatelessWidget {
+  const _CheckStatusLabel({required this.status});
+
+  final TrackingCheckStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = switch (status) {
+      TrackingCheckStatus.success =>
+        isDark ? AppColors.priceDownDark : AppColors.priceDownLight,
+      TrackingCheckStatus.failed => colorScheme.error,
+      TrackingCheckStatus.checking => colorScheme.primary,
+      TrackingCheckStatus.neverChecked => colorScheme.onSurfaceVariant,
+    };
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (status == TrackingCheckStatus.checking) ...[
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(strokeWidth: 2, color: color),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+        Text(
+          status.label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -53,7 +53,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pump();
     expect(find.text('Bu alan boş olamaz'), findsNWidgets(3));
 
@@ -69,13 +75,20 @@ void main() {
       find.widgetWithText(TextFormField, 'Pazaryeri/Site'),
       'Örnek Pazar',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pumpAndSettle();
 
     expect(find.text('Yeni Mağaza'), findsOneWidget);
     expect(find.text('Pazaryeri: Örnek Pazar'), findsOneWidget);
     expect(find.text('Toplam ürün: 0'), findsOneWidget);
     expect(find.text('Yeni ürün: 0'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsWidgets);
   });
 
   testWidgets('removes a seller after confirmation and closes detail', (

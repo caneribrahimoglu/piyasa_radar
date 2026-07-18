@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:piyasa_radar/core/constants/default_check_times.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
 import 'package:piyasa_radar/shared/widgets/app_button.dart';
 import 'package:piyasa_radar/shared/widgets/app_text_field.dart';
@@ -77,7 +78,9 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
             checkTimes: _checkTimes,
             totalProducts: 0,
             newProductsCount: 0,
-            lastCheckedAt: DateTime.now(),
+            checkStatus: TrackingCheckStatus.neverChecked,
+            lastCheckedAt: null,
+            lastCheckError: null,
             products: const [],
             alerts: const [],
           )
@@ -124,11 +127,6 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
                 validator: _requiredFieldValidator,
               ),
               const SizedBox(height: 16),
-              AppButton(
-                label: _isEditing ? 'Güncelle' : 'Kaydet',
-                onPressed: _saveForm,
-              ),
-              const SizedBox(height: 16),
               CheckTimeEditor(
                 times: _checkTimes,
                 errorText: _checkTimesErrorText,
@@ -138,6 +136,11 @@ class _AddSellerWatchPageState extends State<AddSellerWatchPage> {
                     _checkTimesErrorText = null;
                   });
                 },
+              ),
+              const SizedBox(height: 16),
+              AppButton(
+                label: _isEditing ? 'Güncelle' : 'Kaydet',
+                onPressed: _saveForm,
               ),
             ],
           ),

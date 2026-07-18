@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piyasa_radar/app/app.dart';
 import 'package:piyasa_radar/app/app_state.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 import 'package:piyasa_radar/features/watchlist/presentation/pages/add_product_watch_page.dart';
 import 'package:piyasa_radar/features/watchlist/presentation/pages/product_watch_detail_page.dart';
@@ -39,7 +40,7 @@ class _AddProductHarnessState extends State<_AddProductHarness> {
               ),
               if (result != null)
                 Text(
-                  'target:${result!.targetPrice},last:${result!.lastPrice},previous:${result!.previousPrice}',
+                  'target:${result!.targetPrice},last:${result!.lastPrice},previous:${result!.previousPrice},status:${result!.checkStatus.name},checked:${result!.lastCheckedAt},error:${result!.lastCheckError}',
                 ),
             ],
           ),
@@ -75,10 +76,21 @@ void main() {
     await tester.pumpAndSettle();
 
     await fillRequiredProductFields(tester);
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pumpAndSettle();
 
-    expect(find.text('target:null,last:0,previous:0'), findsOneWidget);
+    expect(
+      find.text(
+        'target:null,last:0,previous:0,status:${TrackingCheckStatus.neverChecked.name},checked:null,error:null',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('positive target price is saved separately from real prices', (
@@ -93,10 +105,21 @@ void main() {
       find.widgetWithText(TextFormField, 'Hedef fiyat'),
       '3000',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pumpAndSettle();
 
-    expect(find.text('target:3000,last:0,previous:0'), findsOneWidget);
+    expect(
+      find.text(
+        'target:3000,last:0,previous:0,status:${TrackingCheckStatus.neverChecked.name},checked:null,error:null',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('zero and negative target prices are rejected', (tester) async {
@@ -109,7 +132,13 @@ void main() {
       find.widgetWithText(TextFormField, 'Hedef fiyat'),
       '0',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pump();
 
     expect(find.text("Hedef fiyat 0'dan büyük olmalı."), findsOneWidget);
@@ -118,7 +147,13 @@ void main() {
       find.widgetWithText(TextFormField, 'Hedef fiyat'),
       '-1',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pump();
 
     expect(find.text("Hedef fiyat 0'dan büyük olmalı."), findsOneWidget);
@@ -152,7 +187,13 @@ void main() {
     await tester.tap(find.text('Formu aç'));
     await tester.pumpAndSettle();
     await fillRequiredProductFields(tester);
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pumpAndSettle();
 
     final item = tester
@@ -184,7 +225,7 @@ void main() {
 
     expect(find.text('Hedef fiyat'), findsOneWidget);
     expect(find.text('Belirlenmedi'), findsOneWidget);
-    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsWidgets);
     expect(find.text('Veri yok'), findsOneWidget);
   });
 }

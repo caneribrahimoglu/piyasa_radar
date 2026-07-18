@@ -103,7 +103,6 @@ void main() {
     );
     expect(find.widgetWithText(TextFormField, item.sellerName), findsOneWidget);
     expect(find.widgetWithText(TextFormField, '3000'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Güncelle'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Kontrol saatleri'),
       300,
@@ -114,6 +113,13 @@ void main() {
     expect(find.text('09:00'), findsOneWidget);
     expect(find.text('14:00'), findsOneWidget);
     expect(find.text('20:00'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Güncelle'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Güncelle'), findsOneWidget);
   });
 
   testWidgets(
@@ -130,7 +136,13 @@ void main() {
         'Güncel Ürün',
       );
       await tester.enterText(find.widgetWithText(TextFormField, '3000'), '');
-      await tester.tap(find.widgetWithText(FilledButton, 'Güncelle'));
+      await tester.scrollUntilVisible(
+        find.text('Güncelle'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Güncelle'));
       await tester.pumpAndSettle();
 
       final result = tester
@@ -145,6 +157,8 @@ void main() {
       expect(result.lastPrice, item.lastPrice);
       expect(result.previousPrice, item.previousPrice);
       expect(result.lastCheckedAt, item.lastCheckedAt);
+      expect(result.checkStatus, item.checkStatus);
+      expect(result.lastCheckError, item.lastCheckError);
       expect(result.priceChanged, item.priceChanged);
       expect(result.inStock, item.inStock);
     },
@@ -194,7 +208,13 @@ void main() {
         find.widgetWithText(TextFormField, item.sellerName),
         'Güncel Satıcı',
       );
-      await tester.tap(find.widgetWithText(FilledButton, 'Güncelle'));
+      await tester.scrollUntilVisible(
+        find.text('Güncelle'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Güncelle'));
       await tester.pumpAndSettle();
 
       final result = tester
@@ -206,6 +226,8 @@ void main() {
       expect(result.totalProducts, item.totalProducts);
       expect(result.newProductsCount, item.newProductsCount);
       expect(result.lastCheckedAt, item.lastCheckedAt);
+      expect(result.checkStatus, item.checkStatus);
+      expect(result.lastCheckError, item.lastCheckError);
       expect(result.products, item.products);
       expect(result.alerts, item.alerts);
     },
@@ -239,9 +261,13 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.tap(find.text('Kaydet'));
     await tester.pump();
 
     expect(find.text('En az bir kontrol saati seçmelisiniz.'), findsOneWidget);
@@ -275,12 +301,38 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.tap(find.text('Kaydet'));
     await tester.pump();
 
     expect(find.text('En az bir kontrol saati seçmelisiniz.'), findsOneWidget);
+  });
+
+  testWidgets('check time editor appears before the product form button', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: AddProductWatchPage()));
+    await tester.scrollUntilVisible(
+      find.text('Kontrol saatleri'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    final editorTop = tester.getTopLeft(find.text('Kontrol saatleri')).dy;
+    final buttonTop = tester.getTopLeft(find.text('Kaydet')).dy;
+
+    expect(editorTop, lessThan(buttonTop));
   });
 
   testWidgets('product detail updates immediately after editing', (
@@ -305,7 +357,13 @@ void main() {
       'Logitech MX Master Edit',
     );
     await tester.enterText(find.widgetWithText(TextFormField, '3000'), '');
-    await tester.tap(find.widgetWithText(FilledButton, 'Güncelle'));
+    await tester.scrollUntilVisible(
+      find.text('Güncelle'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Güncelle'));
     await tester.pumpAndSettle();
 
     expect(find.text('Ürün takibi güncellendi.'), findsOneWidget);
@@ -339,7 +397,13 @@ void main() {
       find.widgetWithText(TextFormField, 'TeknolojiPlus'),
       'TeknolojiPlus Edit',
     );
-    await tester.tap(find.widgetWithText(FilledButton, 'Güncelle'));
+    await tester.scrollUntilVisible(
+      find.text('Güncelle'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Güncelle'));
     await tester.pumpAndSettle();
 
     expect(find.text('Satıcı takibi güncellendi.'), findsOneWidget);

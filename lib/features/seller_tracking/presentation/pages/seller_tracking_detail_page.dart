@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piyasa_radar/app/app_state.dart';
 import 'package:piyasa_radar/core/theme/app_radius.dart';
 import 'package:piyasa_radar/core/theme/app_spacing.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
@@ -119,10 +120,14 @@ class _SellerTrackingDetailPageState extends State<SellerTrackingDetailPage> {
               label: 'Yeni ürün sayısı',
               value: _item.newProductsCount.toString(),
             ),
+            _DetailRow(label: 'Kontrol durumu', value: _item.checkStatusLabel),
             _DetailRow(
               label: 'Son kontrol zamanı',
               value: _item.formattedLastCheckedAt,
             ),
+            if (_item.checkStatus == TrackingCheckStatus.failed &&
+                (_item.lastCheckError?.trim().isNotEmpty ?? false))
+              _DetailRow(label: 'Kontrol hatası', value: _item.lastCheckError!),
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Ürün Listesi',

@@ -1,4 +1,5 @@
 import 'package:piyasa_radar/core/constants/default_check_times.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 
 const Object _copyWithSentinel = Object();
@@ -15,7 +16,9 @@ class ProductWatchItem {
     required this.lastPrice,
     required this.previousPrice,
     required this.targetPrice,
+    required this.checkStatus,
     required this.lastCheckedAt,
+    required this.lastCheckError,
     required this.priceChanged,
     required this.stockTrackingEnabled,
     required this.inStock,
@@ -31,7 +34,9 @@ class ProductWatchItem {
   final int lastPrice;
   final int previousPrice;
   final int? targetPrice;
-  final DateTime lastCheckedAt;
+  final TrackingCheckStatus checkStatus;
+  final DateTime? lastCheckedAt;
+  final String? lastCheckError;
   final bool priceChanged;
   final bool stockTrackingEnabled;
   final bool inStock;
@@ -47,7 +52,9 @@ class ProductWatchItem {
     'lastPrice': lastPrice,
     'previousPrice': previousPrice,
     'targetPrice': targetPrice,
-    'lastCheckedAt': lastCheckedAt.toIso8601String(),
+    'checkStatus': trackingCheckStatusToJson(checkStatus),
+    'lastCheckedAt': lastCheckedAt?.toIso8601String(),
+    'lastCheckError': lastCheckError,
     'priceChanged': priceChanged,
     'stockTrackingEnabled': stockTrackingEnabled,
     'inStock': inStock,
@@ -57,6 +64,10 @@ class ProductWatchItem {
     final checkTimesJson = json['checkTimes'];
     final alertsJson = json['alerts'];
     final id = json['id'] as String?;
+    final parsedLastCheckedAt = DateTime.tryParse(
+      json['lastCheckedAt'] as String? ?? '',
+    );
+    final rawCheckStatus = json['checkStatus'];
 
     return ProductWatchItem(
       id: id == null || id.trim().isEmpty
@@ -84,9 +95,13 @@ class ProductWatchItem {
       lastPrice: (json['lastPrice'] as num?)?.toInt() ?? 0,
       previousPrice: (json['previousPrice'] as num?)?.toInt() ?? 0,
       targetPrice: (json['targetPrice'] as num?)?.toInt(),
-      lastCheckedAt:
-          DateTime.tryParse(json['lastCheckedAt'] as String? ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0),
+      checkStatus: rawCheckStatus == null
+          ? parsedLastCheckedAt == null
+                ? TrackingCheckStatus.neverChecked
+                : TrackingCheckStatus.success
+          : trackingCheckStatusFromJson(rawCheckStatus),
+      lastCheckedAt: parsedLastCheckedAt,
+      lastCheckError: json['lastCheckError'] as String?,
       priceChanged: json['priceChanged'] as bool? ?? false,
       stockTrackingEnabled: json['stockTrackingEnabled'] as bool? ?? true,
       inStock: json['inStock'] as bool? ?? false,
@@ -104,7 +119,9 @@ class ProductWatchItem {
     int? lastPrice,
     int? previousPrice,
     Object? targetPrice = _copyWithSentinel,
-    DateTime? lastCheckedAt,
+    TrackingCheckStatus? checkStatus,
+    Object? lastCheckedAt = _copyWithSentinel,
+    Object? lastCheckError = _copyWithSentinel,
     bool? priceChanged,
     bool? stockTrackingEnabled,
     bool? inStock,
@@ -124,7 +141,13 @@ class ProductWatchItem {
       targetPrice: identical(targetPrice, _copyWithSentinel)
           ? this.targetPrice
           : targetPrice as int?,
-      lastCheckedAt: lastCheckedAt ?? this.lastCheckedAt,
+      checkStatus: checkStatus ?? this.checkStatus,
+      lastCheckedAt: identical(lastCheckedAt, _copyWithSentinel)
+          ? this.lastCheckedAt
+          : lastCheckedAt as DateTime?,
+      lastCheckError: identical(lastCheckError, _copyWithSentinel)
+          ? this.lastCheckError
+          : lastCheckError as String?,
       priceChanged: priceChanged ?? this.priceChanged,
       stockTrackingEnabled: stockTrackingEnabled ?? this.stockTrackingEnabled,
       inStock: inStock ?? this.inStock,
@@ -145,6 +168,9 @@ class ProductWatchItem {
       targetPrice == null ? 'Belirlenmedi' : '$targetPrice TL';
 
   String get formattedLastCheckedAt {
+    final lastCheckedAt = this.lastCheckedAt;
+    if (lastCheckedAt == null) return 'Henüz kontrol edilmedi';
+
     final day = _twoDigits(lastCheckedAt.day);
     final month = _twoDigits(lastCheckedAt.month);
     final year = lastCheckedAt.year;
@@ -157,6 +183,8 @@ class ProductWatchItem {
   String get formattedCheckTimes => checkTimes.join(', ');
 
   String get stockLabel => inStock ? 'Stokta' : 'Stokta yok';
+
+  String get checkStatusLabel => checkStatus.label;
 
   static String _twoDigits(int value) => value.toString().padLeft(2, '0');
 

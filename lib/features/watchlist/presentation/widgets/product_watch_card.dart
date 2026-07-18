@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piyasa_radar/core/theme/app_colors.dart';
 import 'package:piyasa_radar/core/theme/app_radius.dart';
 import 'package:piyasa_radar/core/theme/app_spacing.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 import 'package:piyasa_radar/shared/widgets/app_card.dart';
 
@@ -58,6 +59,8 @@ class ProductWatchCard extends StatelessWidget {
               ],
             ],
           ),
+          const SizedBox(height: AppSpacing.sm),
+          _CheckStatusLabel(status: item.checkStatus),
           const SizedBox(height: AppSpacing.sm),
           _InfoRow(label: 'Pazaryeri', value: item.marketplaceName),
           _InfoRow(label: 'Satıcı', value: item.sellerName),
@@ -132,6 +135,46 @@ class ProductWatchCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CheckStatusLabel extends StatelessWidget {
+  const _CheckStatusLabel({required this.status});
+
+  final TrackingCheckStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = switch (status) {
+      TrackingCheckStatus.success =>
+        isDark ? AppColors.priceDownDark : AppColors.priceDownLight,
+      TrackingCheckStatus.failed => colorScheme.error,
+      TrackingCheckStatus.checking => colorScheme.primary,
+      TrackingCheckStatus.neverChecked => colorScheme.onSurfaceVariant,
+    };
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (status == TrackingCheckStatus.checking) ...[
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(strokeWidth: 2, color: color),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+        Text(
+          status.label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

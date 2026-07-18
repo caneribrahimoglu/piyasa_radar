@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:piyasa_radar/app/app_state.dart';
 import 'package:piyasa_radar/core/constants/default_check_times.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
 import 'package:piyasa_radar/features/watchlist/data/repositories/fake_watchlist_repository.dart';
 
@@ -101,7 +102,9 @@ void main() {
       checkTimes: defaultCheckTimes,
       totalProducts: 0,
       newProductsCount: 0,
-      lastCheckedAt: DateTime(2026),
+      checkStatus: TrackingCheckStatus.neverChecked,
+      lastCheckedAt: null,
+      lastCheckError: null,
       products: const [],
       alerts: const [],
     );

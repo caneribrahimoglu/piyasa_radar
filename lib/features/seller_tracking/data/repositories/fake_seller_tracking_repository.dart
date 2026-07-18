@@ -1,4 +1,5 @@
 import 'package:piyasa_radar/core/constants/default_check_times.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_alert_event.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_product_item.dart';
 import 'package:piyasa_radar/features/seller_tracking/domain/models/seller_watch_item.dart';
@@ -16,7 +17,9 @@ class FakeSellerTrackingRepository {
         checkTimes: defaultCheckTimes,
         totalProducts: 128,
         newProductsCount: 6,
+        checkStatus: TrackingCheckStatus.success,
         lastCheckedAt: DateTime(2026, 7, 17, 14, 20),
+        lastCheckError: null,
         products: [
           SellerProductItem(
             productName: 'Logitech MX Keys S',
@@ -57,7 +60,9 @@ class FakeSellerTrackingRepository {
         checkTimes: defaultCheckTimes,
         totalProducts: 84,
         newProductsCount: 2,
+        checkStatus: TrackingCheckStatus.failed,
         lastCheckedAt: DateTime(2026, 7, 17, 13, 45),
+        lastCheckError: 'Satıcı ürün listesi geçici olarak okunamadı.',
         products: [
           SellerProductItem(
             productName: 'Kingston NV3 1TB',
@@ -91,7 +96,9 @@ class FakeSellerTrackingRepository {
         checkTimes: defaultCheckTimes,
         totalProducts: 46,
         newProductsCount: 4,
-        lastCheckedAt: DateTime(2026, 7, 16, 21, 30),
+        checkStatus: TrackingCheckStatus.neverChecked,
+        lastCheckedAt: null,
+        lastCheckError: null,
         products: [
           SellerProductItem(
             productName: 'iPhone 15 Silikon Kılıf',

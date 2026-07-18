@@ -50,7 +50,10 @@ void main() {
     expect(find.text('Satıcı: CepDükkanı'), findsOneWidget);
     expect(find.text('Son kontrol: 17.07.2026 14:30'), findsOneWidget);
     expect(find.text('Son kontrol: 17.07.2026 13:10'), findsOneWidget);
-    expect(find.text('Son kontrol: 16.07.2026 21:45'), findsOneWidget);
+    expect(find.text('Son kontrol: Henüz kontrol edilmedi'), findsOneWidget);
+    expect(find.text('Kontrol başarılı'), findsOneWidget);
+    expect(find.text('Kontrol başarısız'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
     expect(find.text('3299 TL'), findsOneWidget);
     expect(find.text('3499 TL'), findsOneWidget);
     expect(find.text('2899 TL'), findsOneWidget);
@@ -90,6 +93,9 @@ void main() {
     expect(find.text('Toplam ürün: 128'), findsOneWidget);
     expect(find.text('Yeni ürün: 6'), findsOneWidget);
     expect(find.text('Son kontrol: 17.07.2026 14:20'), findsOneWidget);
+    expect(find.text('Kontrol başarılı'), findsOneWidget);
+    expect(find.text('Kontrol başarısız'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Detay'), findsNWidgets(3));
   });
 
@@ -320,7 +326,13 @@ void main() {
       '19999',
     );
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pumpAndSettle();
 
     expect(find.text('Piyasa Radar'), findsOneWidget);
@@ -330,7 +342,7 @@ void main() {
     expect(find.text('Pazaryeri: Amazon'), findsOneWidget);
     expect(find.text('Satıcı: Bilinmeyen satıcı'), findsOneWidget);
     expect(find.text('Hedef: 19999 TL'), findsOneWidget);
-    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsWidgets);
     expect(find.text('19999 TL'), findsNothing);
     expect(find.text('https://example.com/ps5-slim'), findsNothing);
     expect(find.widgetWithText(TextButton, 'Detay'), findsWidgets);
@@ -345,7 +357,7 @@ void main() {
     expect(find.text('Hedef fiyat'), findsOneWidget);
     expect(find.text('19999 TL'), findsOneWidget);
     expect(find.text('Son fiyat'), findsOneWidget);
-    expect(find.text('Henüz kontrol edilmedi'), findsOneWidget);
+    expect(find.text('Henüz kontrol edilmedi'), findsWidgets);
     expect(find.text('Önceki fiyat'), findsOneWidget);
     expect(find.text('Veri yok'), findsOneWidget);
 
@@ -373,10 +385,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Kaydet'));
+    await tester.scrollUntilVisible(
+      find.text('Kaydet'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
     await tester.pump();
 
-    expect(find.text('Bu alan boş olamaz'), findsNWidgets(3));
+    expect(find.text('Bu alan boş olamaz'), findsWidgets);
     expect(find.text('Piyasa Radar'), findsNothing);
   });
 

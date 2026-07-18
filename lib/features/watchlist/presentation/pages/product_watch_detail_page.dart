@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piyasa_radar/app/app_state.dart';
 import 'package:piyasa_radar/core/theme/app_radius.dart';
 import 'package:piyasa_radar/core/theme/app_spacing.dart';
+import 'package:piyasa_radar/core/tracking/tracking_check_status.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/alert_event.dart';
 import 'package:piyasa_radar/features/watchlist/domain/models/product_watch_item.dart';
 import 'package:piyasa_radar/features/watchlist/presentation/pages/add_product_watch_page.dart';
@@ -116,10 +117,14 @@ class _ProductWatchDetailPageState extends State<ProductWatchDetailPage> {
               label: 'Önceki fiyat',
               value: _item.formattedPreviousPrice,
             ),
+            _DetailRow(label: 'Kontrol durumu', value: _item.checkStatusLabel),
             _DetailRow(
               label: 'Son kontrol zamanı',
               value: _item.formattedLastCheckedAt,
             ),
+            if (_item.checkStatus == TrackingCheckStatus.failed &&
+                (_item.lastCheckError?.trim().isNotEmpty ?? false))
+              _DetailRow(label: 'Kontrol hatası', value: _item.lastCheckError!),
             _DetailRow(
               label: 'Stok takibi',
               value: _item.stockTrackingEnabled ? 'Aktif' : 'Kapalı',
